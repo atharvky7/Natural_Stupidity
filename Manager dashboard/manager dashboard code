@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Auth & Management</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7fa; }
+        .card { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .main-container { min-height: 100vh; }
+        /* Simple focus style */
+        input:focus, select:focus, button:focus, textarea:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
+        .required-label::after { content: '*'; color: #ef4444; margin-left: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="main-container flex items-center justify-center p-4">
+    <div id="loading-view" class="flex flex-col items-center justify-center p-8 text-lg font-semibold text-gray-700">
+        <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Loading application...
+    </div>
+
+    <!-- Auth View Container -->
+    <div id="auth-view" class="hidden w-full max-w-lg">
+        <div id="auth-message-box" class="hidden p-3 mb-4 rounded-lg text-sm" role="alert"></div>
+
+        <!-- Tab Controls -->
+        <div class="flex mb-6 bg-white p-1 rounded-xl card shadow-sm">
+            <button id="tab-signup" onclick="switchAuthView('signup')" class="w-1/2 py-2 text-center rounded-xl font-semibold transition-colors duration-200">Sign Up (Simulated)</button>
+            <button id="tab-signin" onclick="switchAuthView('signin')" class="w-1/2 py-2 text-center rounded-xl font-semibold transition-colors duration-200">Sign In (Simulated)</button>
+        </div>
+
+        <!-- Sign Up Form (Admin) -->
+        <div id="signup-form" class="bg-white p-8 rounded-xl card transition-all duration-300">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Admin Sign Up (Simulation)</h2>
+            <form onsubmit="handleSignUp(event)">
+                <div class="mb-4">
+                    <label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="signup-name" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signup-email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signup-password" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="signup-country" class="block text-sm font-medium text-gray-700 mb-1">Country (Sets Company Base Currency)</label>
+                    <select id="signup-country" required class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500">
+                        <option value="" disabled selected>Select a country</option>
+                        <option value="US">United States (USD)</option>
+                        <option value="GB">United Kingdom (GBP)</option>
+                        <option value="JP">Japan (JPY)</option>
+                        <option value="IN">India (INR)</option>
+                        <option value="FR">France (EUR)</option>
+                        <option value="DE">Germany (EUR)</option>
+                        <option value="BR">Brazil (BRL)</option>
+                        <option value="AU">Australia (AUD)</option>
+                    </select>
+                </div>
+                <button type="submit" id="signup-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    Sign Up
+                </button>
+            </form>
+        </div>
+
+        <!-- Sign In Form -->
+        <div id="signin-form" class="bg-white p-8 rounded-xl card hidden transition-all duration-300">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Sign In (Simulation)</h2>
+            <form onsubmit="handleSignIn(event)">
+                <div class="mb-4">
+                    <label for="signin-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signin-email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="signin-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signin-password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" id="signin-btn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 mb-4">
+                    Login
+                </button>
+            </form>
+            <p class="text-center text-sm text-gray-600">
+                <a href="#" onclick="showPasswordResetModal()" class="text-blue-600 hover:text-blue-800 font-medium">Forgot password? (Not available in simulation)</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD VIEW CONTAINER -->
+    <div id="admin-dashboard-view" class="hidden w-full max-w-7xl mx-auto p-4 md:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b pb-4">
+            <div class="text-gray-800 mb-4 md:mb-0">
+                <h1 class="text-3xl font-extrabold flex items-center">
+                    <svg class="w-8 h-8 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20v-2c0-.57-.101-1.117-.29-1.625M21 17.5V20m-4-7a4 4 0 11-8 0 4 4 0 018 0zM12 14v1a3 3 0 00-3 3h6a3 3 0 00-3-3v-1M4 5h16M4 8h16M4 11h16M4 14h16M4 17h16"></path></svg>
+                    Company Admin Dashboard
+                </h1>
+                <p id="company-info" class="text-sm text-gray-500 mt-1"></p>
+            </div>
+            <button onclick="handleSignOut()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m-4-2h12a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z"></path></svg>
+                Sign Out
+            </button>
+        </div>
+        
+        <!-- Tabs for Admin Features -->
+        <div class="flex mb-6 space-x-4">
+            <button onclick="switchAdminTab('users')" id="tab-users" class="px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition-colors duration-200">User Management</button>
+            <button onclick="switchAdminTab('approvals')" id="tab-approvals" class="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-white hover:bg-gray-100 transition-colors duration-200">Approval Rules</button>
+        </div>
+
+        <!-- Tab Content -->
+        
+        <!-- User Management View -->
+        <div id="admin-tab-users">
+            <!-- Add New Employee/Manager Section -->
+            <div class="bg-white p-6 rounded-xl card mb-8">
+                <h3 class="text-xl font-bold mb-4 text-gray-700">Add New Company User</h3>
+                <form onsubmit="handleCreateUser(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div class="md:col-span-1">
+                        <label for="new-user-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <input type="text" id="new-user-name" placeholder="John Doe" required class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="new-user-email" placeholder="john@company.com" required class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="new-user-role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <select id="new-user-role" required class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                            <option value="Employee">Employee</option>
+                            <option value="Manager">Manager</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <button type="submit" id="create-user-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                            Add User
+                        </button>
+                    </div>
+                </form>
+                <p id="user-creation-message" class="mt-3 text-sm hidden"></p>
+            </div>
+
+            <!-- Users Table Section -->
+            <div class="bg-white p-6 rounded-xl card overflow-x-auto">
+                <h3 class="text-xl font-bold mb-4 text-gray-700">Company Users</h3>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Name / Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Manager</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- User rows will be inserted here by JavaScript -->
+                        <tr><td colspan="4" class="text-center py-4 text-gray-500">No employees or managers have been added yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Approval Rules View -->
+        <div id="admin-tab-approvals" class="hidden">
+            <div class="bg-white p-6 rounded-xl card mb-8">
+                <h3 class="text-xl font-bold mb-6 text-gray-700">Define New Approval Rule (Admin View)</h3>
+                <form onsubmit="handleSaveApprovalRule(event)" id="approval-rule-form">
+                    
+                    <!-- Rule Applies To / Description -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-b pb-6">
+                        <!-- Left side: User/Manager Definition -->
+                        <div>
+                            <div class="mb-4">
+                                <label for="rule-user" class="block text-sm font-medium text-gray-700 mb-1 required-label">User</label>
+                                <select id="rule-user" required class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                                    <option value="" disabled selected>Select user for this rule</option>
+                                    <option value="All">All Users (Global Rule)</option>
+                                    <!-- Dynamic user options populated here by JS -->
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="rule-manager" class="block text-sm font-medium text-gray-700 mb-1">Manager</label>
+                                <select id="rule-manager" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                                    <option value="" selected>Initially set on user record</option>
+                                    <!-- Dynamic manager options populated here by JS -->
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Initially the manager set on user record should be set, admin can change manager for approval if required.</p>
+                            </div>
+                            <div class="mb-4">
+                                <label for="rule-description" class="block text-sm font-medium text-gray-700 mb-1 required-label">Description about rules</label>
+                                <input type="text" id="rule-description" required class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Approval rule for miscellaneous expenses">
+                            </div>
+                        </div>
+
+                        <!-- Right side: Manager Approver Check -->
+                        <div class="p-4 border border-blue-200 rounded-xl bg-blue-50 self-start">
+                            <label class="flex items-center text-sm font-medium text-gray-700">
+                                <input type="checkbox" id="is-manager-approver" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" onchange="renderApproversList()">
+                                Is manager an approver?
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 pl-6">If this field is checked then by default the approve request would go to his/her manager first, before going to other approvers.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Approvers List -->
+                    <h4 class="text-lg font-bold mb-3 text-gray-700">Approvers</h4>
+                    <div class="mb-4 border-b pb-6">
+                        <div class="flex justify-between items-center mb-2 text-sm font-medium text-gray-700">
+                            <span class="w-1/3">User</span>
+                            <span class="w-1/5 text-center">Required</span>
+                            <span class="w-1/3 text-center text-gray-500 text-xs italic">Description</span>
+                            <span class="w-1/12"></span>
+                        </div>
+                        <div id="approvers-list" class="space-y-2">
+                            <!-- Dynamic approver fields inserted here -->
+                        </div>
+                        <button type="button" onclick="addApprover()" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Add Approver
+                        </button>
+                    </div>
+                    
+                    <!-- Sequence and Minimum Approval -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="p-4 border border-green-200 rounded-xl bg-green-50 self-start">
+                            <label class="flex items-center text-sm font-medium text-gray-700">
+                                <input type="checkbox" id="approvers-sequence-required" class="h-4 w-4 text-green-600 border-gray-300 rounded mr-2">
+                                Approvers Sequence
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 pl-6">If this field is ticked true then the above mentioned sequence of approvers matters, that is first the request goes to John, if he approves/rejects then only request goes to Mitchell and so on. If the required approver rejects the request, then expense request is auto-rejected. If not ticked then send approver request to all approvers at the same time.</p>
+                        </div>
+                        <div>
+                            <label for="min-approval-percentage" class="block text-sm font-medium text-gray-700 mb-1">Minimum Approval percentage (%)</label>
+                            <input type="number" id="min-approval-percentage" min="0" max="100" value="100" required class="w-full p-3 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="save-rule-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-200 mt-6">
+                        Save Approval Rule
+                    </button>
+                    <p id="rule-save-message" class="mt-3 text-sm hidden"></p>
+                </form>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl card overflow-x-auto">
+                <h3 class="text-xl font-bold mb-4 text-gray-700">Existing Approval Rules</h3>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Description</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Applies To</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Approvers</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rules-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Rules will be loaded here -->
+                        <tr><td colspan="4" class="text-center py-4 text-gray-500">No approval rules defined yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- EMPLOYEE DASHBOARD VIEW CONTAINER (New Content) -->
+    <div id="employee-dashboard-view" class="hidden w-full max-w-7xl mx-auto p-4 md:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b pb-4">
+            <div class="text-gray-800 mb-4 md:mb-0">
+                <h1 class="text-3xl font-extrabold flex items-center">
+                    <svg class="w-8 h-8 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Employee Expense Management
+                </h1>
+                <p id="employee-info" class="text-sm text-gray-500 mt-1"></p>
+            </div>
+            <button onclick="handleSignOut()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m-4-2h12a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z"></path></svg>
+                Sign Out
+            </button>
+        </div>
+
+        <!-- Employee Tabs -->
+        <div class="flex mb-6 space-x-4">
+            <button onclick="switchEmployeeTab('new-expense')" id="employee-tab-new-expense" class="px-4 py-2 rounded-lg font-semibold bg-green-600 text-white transition-colors duration-200">
+                New Expense / Draft
+            </button>
+            <button onclick="switchEmployeeTab('history')" id="employee-tab-history" class="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-white hover:bg-gray-100 transition-colors duration-200">
+                Expense History
+            </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="employee-content-new-expense">
+            <div class="bg-white p-6 rounded-xl card mb-8">
+                <div class="flex justify-between items-center mb-4 border-b pb-3">
+                    <h3 class="text-xl font-bold text-gray-700">
+                        <span id="expense-form-title">New Expense (Draft)</span>
+                    </h3>
+                    <div class="flex space-x-3">
+                        <!-- OCR Feature: Upload Receipt Button -->
+                        <button onclick="triggerReceiptUpload()" id="btn-upload-receipt" class="bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-600 transition-colors duration-200 flex items-center">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Upload Receipt (OCR Sim)
+                        </button>
+                        <input type="file" id="receipt-upload" accept="image/*" class="hidden" onchange="simulateOCR(event)">
+
+                        <button id="btn-new-expense" onclick="handleNewExpense()" class="bg-blue-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors duration-200">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            New
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Expense Submission Form -->
+                <form id="expense-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-1">
+                        <label for="expense-date" class="block text-sm font-medium text-gray-700 mb-1 required-label">Expense Date</label>
+                        <input type="date" id="expense-date" required class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="expense-category" class="block text-sm font-medium text-gray-700 mb-1 required-label">Category</label>
+                        <select id="expense-category" required class="w-full p-3 border border-gray-300 rounded-lg bg-white"></select>
+                    </div>
+                    
+                    <div class="md:col-span-1">
+                        <label for="expense-description" class="block text-sm font-medium text-gray-700 mb-1 required-label">Description</label>
+                        <input type="text" id="expense-description" placeholder="e.g., Client lunch at ABC restaurant" required class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    
+                    <div class="md:col-span-1">
+                        <label for="expense-amount" class="block text-sm font-medium text-gray-700 mb-1 required-label">Total Amount</label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="expense-amount" min="0.01" step="0.01" placeholder="567.00" required class="w-2/3 p-3 border border-gray-300 rounded-lg">
+                            <select id="expense-currency" required class="w-1/3 p-3 border border-gray-300 rounded-lg bg-white"></select>
+                        </div>
+                        <p id="base-currency-conversion" class="text-xs text-gray-500 mt-1 italic"></p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="expense-remarks" class="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                        <textarea id="expense-remarks" rows="3" class="w-full p-3 border border-gray-300 rounded-lg"></textarea>
+                    </div>
+                </form>
+
+                <!-- Approval Log / Actions -->
+                <div id="expense-actions-log" class="mt-8 pt-6 border-t border-gray-200">
+                    <div id="expense-actions" class="flex space-x-4">
+                        <button onclick="handleSaveDraft(event)" id="btn-save-draft" class="px-6 py-3 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 transition-colors duration-200">
+                            Save Draft
+                        </button>
+                        <button onclick="handleSubmitExpense(event)" id="btn-submit-expense" class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors duration-200">
+                            Submit Expense
+                        </button>
+                    </div>
+                    
+                    <!-- Approval Workflow Status -->
+                    <div id="approval-log-section" class="mt-6 hidden">
+                        <h4 class="text-lg font-bold mb-3 text-gray-700">Approval Workflow</h4>
+                        <div id="approval-log-status" class="flex justify-start space-x-6 mb-4">
+                            <span id="status-draft" class="font-semibold text-gray-500">Draft</span>
+                            <span id="status-pending" class="font-semibold text-gray-500">Waiting Approval</span>
+                            <span id="status-approved" class="font-semibold text-gray-500">Approved</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approver</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="approval-log-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Log entries inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <p id="expense-message" class="mt-3 text-sm hidden"></p>
+            </div>
+        </div>
+
+        <div id="employee-content-history" class="hidden">
+            <div class="bg-white p-6 rounded-xl card overflow-x-auto">
+                <h3 class="text-xl font-bold mb-4 text-gray-700">My Expense History</h3>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Description</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Category</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="bg-white divide-y divide-gray-200">
+                        <tr><td colspan="5" class="text-center py-4 text-gray-500">No expenses submitted yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- MANAGER DASHBOARD VIEW CONTAINER (New Content) -->
+    <div id="manager-dashboard-view" class="hidden w-full max-w-7xl mx-auto p-4 md:p-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b pb-4">
+            <div class="text-gray-800 mb-4 md:mb-0">
+                <h1 class="text-3xl font-extrabold flex items-center">
+                    <svg class="w-8 h-8 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c-2.835 0-5.474 1.29-7.159 3.316m-4.665 4.665a.75.75 0 000 1.06l1.391 1.392a.75.75 0 001.06 0l4.288-4.288a.75.75 0 000-1.06L7.172 7.172a.75.75 0 00-1.06 0L4.953 8.353m14.094-1.293l1.107 1.107a.75.75 0 001.06 0l1.391-1.392a.75.75 0 000-1.06l-1.392-1.391a.75.75 0 00-1.06 0z"></path></svg>
+                    Manager Approval View
+                </h1>
+                <p id="manager-info" class="text-sm text-gray-500 mt-1"></p>
+            </div>
+            <button onclick="handleSignOut()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m-4-2h12a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z"></path></svg>
+                Sign Out
+            </button>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl card overflow-x-auto">
+            <h3 class="text-xl font-bold mb-4 text-gray-700">Approvals to Review (<span id="pending-count">0</span>)</h3>
+            <p id="manager-message" class="mt-3 text-sm hidden"></p>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Approval Subject (Description)</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Request Owner</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Category</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Request Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Total Amount (Base Currency)</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="manager-approvals-table-body" class="bg-white divide-y divide-gray-200">
+                    <tr><td colspan="6" class="text-center py-4 text-gray-500">No pending requests assigned to you.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 1. Password Reset Modal (For Simulation Message) -->
+    <div id="reset-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4 z-40">
+        <div class="bg-white p-6 rounded-xl card max-w-sm w-full">
+            <h3 class="text-lg font-bold mb-4">Forgot Password</h3>
+            <p class="text-sm text-gray-600 mb-4">Enter your email address. We will send a simulated temporary password.</p>
+            <input type="email" id="reset-email" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg mb-4">
+            <button onclick="handlePasswordReset()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Send Reset Link</button>
+            <button onclick="hidePasswordResetModal()" class="w-full mt-2 text-gray-600 py-2">Cancel</button>
+            <p id="reset-message" class="mt-3 text-sm"></p>
+        </div>
+    </div>
+    
+    <!-- 2. Custom Confirm/Alert Modal (Replaces alert() and confirm()) -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-gray-600 bg-opacity-70 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl card max-w-md w-full">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-gray-800"></h3>
+            <p id="modal-body" class="text-sm text-gray-600 mb-6"></p>
+            <div id="modal-actions" class="flex justify-end space-x-3">
+                <button id="modal-cancel-btn" onclick="hideConfirmModal()" class="px-4 py-2 text-sm font-semibold rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-150">
+                    Cancel
+                </button>
+                <button id="modal-confirm-btn" class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors duration-150">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Firebase Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+        getAuth, 
+        signInAnonymously, 
+        signInWithCustomToken, 
+        onAuthStateChanged, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        signOut, 
+        sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+        getFirestore, 
+        doc, 
+        setDoc, 
+        updateDoc, 
+        onSnapshot, 
+        collection, 
+        query, 
+        where, 
+        getDocs, 
+        getDoc,
+        setLogLevel,
+        deleteDoc,
+        addDoc
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- GLOBAL STATE & FIREBASE SETUP ---
+    let app, auth, db;
+    let currentUser = null;
+    let currentCompanyId = null;
+    let companyBaseCurrency = 'USD';
+    let companyUsers = [];
+    let companyRules = [];
+    let currentApprovers = []; // Stores the list of approvers for the current admin form
+    
+    // Employee Specific State
+    let currentEmployeeData = null;
+    let currentExpense = null; // The expense object currently being viewed/edited
+    let employeeExpenses = []; // List of all expenses for the current employee
+    
+    // Manager Specific State
+    let managerApprovals = [];
+    
+    // START SIMULATION MODE: Set to TRUE to bypass Firebase Auth and immediately access the Admin Dashboard.
+    const SIMULATION_MODE = true; 
+    const SIMULATED_ADMIN_UID = "sim_admin_12345"; 
+
+
+    // Global variables from Canvas Environment
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // Currency mapping based on country selection
+    const currencyMap = {
+        'US': 'USD', 'GB': 'GBP', 'JP': 'JPY', 'IN': 'INR', 'FR': 'EUR', 'DE': 'EUR', 'BR': 'BRL', 'AU': 'AUD'
+    };
+
+    // --- GLOBAL MOCK DATA ---
+    const EXPENSE_CATEGORIES = [
+        'Travel', 'Meals', 'Office Supplies', 'Software', 'Client Entertainment', 'Other'
+    ];
+    const CURRENCIES = [
+        'USD', 'EUR', 'GBP', 'JPY', 'INR', 'AUD', 'BRL', 'CAD'
+    ];
+    // Mock Exchange Rates (Based on USD=1)
+    const MOCK_RATES = {
+        'USD': 1.0, 'EUR': 0.93, 'GBP': 0.81, 'JPY': 150.0, 'INR': 83.0, 'AUD': 1.55, 'BRL': 5.0, 'CAD': 1.37
+    };
+    
+    // Firestore Path Constants
+    const COMPANIES_PATH = `/artifacts/${appId}/public/data/companies`;
+    const USERS_PATH = `/artifacts/${appId}/public/data/users`;
+    const RULES_PATH = `/artifacts/${appId}/public/data/approval_rules`; 
+    const EXPENSES_PATH = `/artifacts/${appId}/public/data/expenses`; // New collection for expenses
+
+
+    // Initialize Firebase
+    function initializeAppServices() {
+        try {
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is missing. Cannot initialize Firebase.");
+                document.getElementById('loading-view').innerHTML = '<p class="text-red-600">Error: Firebase configuration is missing.</p>';
+                return;
+            }
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setLogLevel('debug');
+            
+            // Populate dynamic select fields on load
+            populateStaticDropdowns();
+            
+            handleInitialAuth().finally(() => {
+                document.getElementById('loading-view').classList.add('hidden'); 
+                
+                if (SIMULATION_MODE) {
+                    switchView('auth');
+                    switchAuthView('signup');
+                } else {
+                    onAuthStateChanged(auth, (user) => {
+                        if (user) {
+                            currentUser = user;
+                            checkUserRoleAndLoadDashboard(user.uid);
+                        } else {
+                            currentUser = null;
+                            currentCompanyId = null;
+                            switchView('auth');
+                            switchAuthView('signup');
+                        }
+                    });
+                }
+            });
+
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+            document.getElementById('loading-view').innerHTML = `<p class="text-red-600">Initialization Error: ${error.message}</p>`;
+        }
+    }
+    
+    // Populate dropdowns with static data
+    function populateStaticDropdowns() {
+        const currencySelect = document.getElementById('expense-currency');
+        const categorySelect = document.getElementById('expense-category');
+        
+        CURRENCIES.forEach(c => {
+            currencySelect.innerHTML += `<option value="${c}" ${c === 'USD' ? 'selected' : ''}>${c}</option>`;
+        });
+        
+        EXPENSE_CATEGORIES.forEach(c => {
+            categorySelect.innerHTML += `<option value="${c}">${c}</option>`;
+        });
+    }
+
+    async function handleInitialAuth() {
+        const auth = getAuth(app);
+        try {
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Initial auth failed:", error);
+            await signInAnonymously(auth);
+        }
+    }
+    
+    // --- CUSTOM MODAL FUNCTIONS (Replaces alert() and confirm()) ---
+
+    function showConfirmModal(title, body, onConfirm = null, confirmText = 'OK', confirmColor = 'bg-blue-600') {
+        const modal = document.getElementById('custom-confirm-modal');
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-body').innerHTML = body;
+        
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+
+        confirmBtn.className = '';
+        cancelBtn.className = '';
+        confirmBtn.onclick = null;
+        cancelBtn.onclick = hideConfirmModal;
+        
+        if (onConfirm) {
+            confirmBtn.textContent = confirmText;
+            confirmBtn.classList.add('px-4', 'py-2', 'text-sm', 'font-semibold', 'rounded-lg', confirmColor, 'text-white', 'hover:' + confirmColor.replace('600', '700'), 'transition-colors', 'duration-150');
+            cancelBtn.classList.add('px-4', 'py-2', 'text-sm', 'font-semibold', 'rounded-lg', 'bg-gray-200', 'text-gray-700', 'hover:bg-gray-300', 'transition-colors', 'duration-150');
+            
+            confirmBtn.onclick = () => {
+                hideConfirmModal();
+                onConfirm(); 
+            };
+            cancelBtn.classList.remove('hidden');
+        } else {
+            confirmBtn.textContent = confirmText;
+            confirmBtn.classList.add('px-4', 'py-2', 'text-sm', 'font-semibold', 'rounded-lg', 'bg-blue-600', 'text-white', 'hover:bg-blue-700', 'transition-colors', 'duration-150');
+            confirmBtn.onclick = hideConfirmModal;
+            cancelBtn.classList.add('hidden');
+        }
+        
+        modal.classList.add('flex');
+        modal.classList.remove('hidden');
+    }
+
+    function hideConfirmModal() {
+        const modal = document.getElementById('custom-confirm-modal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+
+    window.simulatePasswordSend = function(email) {
+        const title = "Simulated Password Send";
+        const body = `Password request received for <strong>${email}</strong>. In a real application, a temporary password or reset link would be emailed to the user.`;
+        showConfirmModal(title, body, null, 'Close');
+    }
+    
+    // --- VIEW MANAGEMENT & AUTH ---
+    
+    function switchView(view) {
+        document.getElementById('auth-view').classList.add('hidden');
+        document.getElementById('admin-dashboard-view').classList.add('hidden');
+        document.getElementById('employee-dashboard-view').classList.add('hidden');
+        document.getElementById('manager-dashboard-view').classList.add('hidden');
+        
+        if (view === 'auth') {
+            document.getElementById('auth-view').classList.remove('hidden');
+        } else if (view === 'admin-dashboard') {
+            document.getElementById('admin-dashboard-view').classList.remove('hidden');
+        } else if (view === 'employee-dashboard') {
+            document.getElementById('employee-dashboard-view').classList.remove('hidden');
+        } else if (view === 'manager-dashboard') {
+            document.getElementById('manager-dashboard-view').classList.remove('hidden');
+        }
+    }
+    
+    function switchAuthView(formType) {
+        const signupForm = document.getElementById('signup-form');
+        const signinForm = document.getElementById('signin-form');
+        const tabSignup = document.getElementById('tab-signup');
+        const tabSignin = document.getElementById('tab-signin');
+        
+        // Define common classes for active/inactive tabs
+        const activeClasses = ['bg-blue-500', 'text-white'];
+        const inactiveClasses = ['text-gray-700', 'hover:bg-gray-100'];
+
+        // Reset both tabs
+        tabSignup.classList.remove(...activeClasses, ...inactiveClasses);
+        tabSignin.classList.remove(...activeClasses, ...inactiveClasses);
+
+        if (formType === 'signup') {
+            signupForm.classList.remove('hidden');
+            signinForm.classList.add('hidden');
+            tabSignup.classList.add(...activeClasses);
+            tabSignin.classList.add(...inactiveClasses);
+        } else {
+            signupForm.classList.add('hidden');
+            signinForm.classList.remove('hidden');
+            tabSignin.classList.add(...activeClasses);
+            tabSignup.classList.add(...inactiveClasses);
+        }
+        
+        document.getElementById('auth-message-box').classList.add('hidden');
+    }
+
+    // Admin tab switch (existing)
+    window.switchAdminTab = function(tabName) {
+        document.getElementById('admin-tab-users').classList.add('hidden');
+        document.getElementById('admin-tab-approvals').classList.add('hidden');
+        document.getElementById('tab-users').classList.remove('bg-blue-600', 'text-white', 'bg-white', 'text-gray-700', 'hover:bg-gray-100');
+        document.getElementById('tab-approvals').classList.remove('bg-blue-600', 'text-white', 'bg-white', 'text-gray-700', 'hover:bg-gray-100');
+
+        if (tabName === 'users') {
+            document.getElementById('admin-tab-users').classList.remove('hidden');
+            document.getElementById('tab-users').classList.add('bg-blue-600', 'text-white');
+            document.getElementById('tab-approvals').classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+        } else if (tabName === 'approvals') {
+            document.getElementById('admin-tab-approvals').classList.remove('hidden');
+            document.getElementById('tab-approvals').classList.add('bg-blue-600', 'text-white');
+            document.getElementById('tab-users').classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+            populateApprovalRuleDropdowns(); 
+            renderApproversList(); 
+            listenForApprovalRules();
+        }
+    }
+    
+    // Employee tab switch (new)
+    window.switchEmployeeTab = function(tabName) {
+        document.getElementById('employee-content-new-expense').classList.add('hidden');
+        document.getElementById('employee-content-history').classList.add('hidden');
+        document.getElementById('employee-tab-new-expense').classList.remove('bg-green-600', 'text-white', 'bg-white', 'text-gray-700', 'hover:bg-gray-100');
+        document.getElementById('employee-tab-history').classList.remove('bg-green-600', 'text-white', 'bg-white', 'text-gray-700', 'hover:bg-gray-100');
+        
+        if (tabName === 'new-expense') {
+            document.getElementById('employee-content-new-expense').classList.remove('hidden');
+            document.getElementById('employee-tab-new-expense').classList.add('bg-green-600', 'text-white');
+            document.getElementById('employee-tab-history').classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+        } else if (tabName === 'history') {
+            document.getElementById('employee-content-history').classList.remove('hidden');
+            document.getElementById('employee-tab-history').classList.add('bg-green-600', 'text-white');
+            document.getElementById('employee-tab-new-expense').classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-100');
+        }
+    }
+    
+    async function checkUserRoleAndLoadDashboard(uid) {
+        try {
+            const userDocRef = doc(db, USERS_PATH, uid);
+            const userSnap = await getDoc(userDocRef);
+
+            if (!userSnap.exists()) {
+                console.warn("User record not found in Firestore. Signing out.");
+                if (!SIMULATION_MODE) handleSignOut(); 
+                return;
+            }
+
+            const userData = userSnap.data();
+            currentCompanyId = userData.companyId;
+            
+            const companyDocRef = doc(db, COMPANIES_PATH, currentCompanyId);
+            const companySnap = await getDoc(companyDocRef);
+            if (companySnap.exists()) {
+                companyBaseCurrency = companySnap.data().baseCurrency;
+            }
+
+            if (userData.role === 'Admin') {
+                document.getElementById('company-info').textContent = `User: ${userData.name} (Admin) | Company ID: ${currentCompanyId} | Base Currency: ${companyBaseCurrency}`;
+                switchView('admin-dashboard');
+                listenForCompanyUsers();
+                switchAdminTab('users');
+            } else if (userData.role === 'Employee') { 
+                currentEmployeeData = userData; 
+                document.getElementById('employee-info').textContent = `User: ${userData.name} (${userData.role}) | Company ID: ${currentCompanyId} | Base Currency: ${companyBaseCurrency}`;
+                switchView('employee-dashboard'); 
+                loadEmployeeDashboard(); 
+            } else if (userData.role === 'Manager') {
+                currentEmployeeData = userData; 
+                document.getElementById('manager-info').textContent = `User: ${userData.name} (Manager) | Company ID: ${currentCompanyId} | Base Currency: ${companyBaseCurrency}`;
+                switchView('manager-dashboard');
+                listenForManagerApprovals();
+            } else {
+                switchView('auth'); 
+                displayAuthMessage("Access Denied: Your user role is not recognized.", true);
+            }
+
+        } catch (error) {
+            console.error("Error checking user role and loading dashboard:", error);
+            handleSignOut();
+        }
+    }
+
+    async function handleSignOut() {
+        if (SIMULATION_MODE) {
+            currentUser = null;
+            currentCompanyId = null;
+            currentEmployeeData = null;
+            switchView('auth');
+            switchAuthView('signin');
+        } else {
+            // Note: Firebase auth listener handles state change after signOut
+            signOut(auth).catch((error) => {
+                console.error("Error signing out:", error);
+            });
+        }
+    }
+    
+    // --- EMPLOYEE DASHBOARD LOGIC ---
+
+    function loadEmployeeDashboard() {
+        listenForEmployeeExpenses();
+        switchEmployeeTab('new-expense');
+        // Start with a blank new expense form
+        handleNewExpense(); 
+    }
+
+    // --- OCR SIMULATION LOGIC ---
+
+    // Expose hidden file input click event
+    window.triggerReceiptUpload = function() {
+        document.getElementById('receipt-upload').click();
+    }
+
+    // Main OCR simulation handler
+    window.simulateOCR = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            showConfirmModal(
+                'OCR Processing...', 
+                '<div class="flex items-center justify-center space-x-3"><svg class="animate-spin h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Analyzing receipt image...</span></div>', 
+                null, 
+                'Processing...',
+                'bg-gray-400'
+            );
+
+            // Simulate Network delay and processing time
+            setTimeout(() => {
+                // Mock extracted data (simulate high confidence extraction)
+                const mockData = {
+                    date: new Date().toISOString().substring(0, 10), // Today's date
+                    amount: (Math.random() * 50 + 10).toFixed(2), // Random amount between 10 and 60
+                    currency: 'EUR', // Assume European receipt for variety
+                    category: 'Meals',
+                    description: 'Restaurant Bill: The Cozy Cafe',
+                    remarks: `Autogenerated from receipt upload: ${file.name}`
+                };
+                
+                // Clear any existing draft to ensure a fresh entry for OCR
+                handleNewExpense(); 
+                
+                // Auto-populate form
+                document.getElementById('expense-date').value = mockData.date;
+                document.getElementById('expense-category').value = mockData.category;
+                document.getElementById('expense-description').value = mockData.description;
+                document.getElementById('expense-amount').value = mockData.amount;
+                document.getElementById('expense-currency').value = mockData.currency;
+                document.getElementById('expense-remarks').value = mockData.remarks;
+                
+                updateConversionDisplay();
+
+                hideConfirmModal();
+                showConfirmModal(
+                    'OCR Complete',
+                    `Successfully extracted data from ${file.name}. Please review and click 'Save Draft' or 'Submit Expense'.`,
+                    null,
+                    'OK'
+                );
+            }, 1500); 
+        };
+        reader.readAsDataURL(file);
+    }
+
+    
+    // Mock Currency Conversion function
+    window.mockCurrencyConversion = function(amount, sourceCurrency, targetCurrency) {
+        if (!amount || !sourceCurrency || !targetCurrency) return 0;
+        
+        const sourceRate = MOCK_RATES[sourceCurrency] || 1;
+        const targetRate = MOCK_RATES[targetCurrency] || 1;
+
+        // Convert to USD (base for MOCK_RATES)
+        const amountInUSD = amount / sourceRate; 
+        
+        // Convert to Target Currency
+        const convertedAmount = amountInUSD * targetRate; 
+        
+        return convertedAmount.toFixed(2);
+    }
+    
+    // Utility to update conversion display
+    function updateConversionDisplay() {
+        const amountElement = document.getElementById('expense-amount');
+        const currencyElement = document.getElementById('expense-currency');
+        
+        if (!amountElement || !currencyElement) return;
+
+        const amount = parseFloat(amountElement.value);
+        const sourceCurrency = currencyElement.value;
+        const targetCurrency = companyBaseCurrency;
+        const displayElement = document.getElementById('base-currency-conversion');
+
+        if (amount > 0 && sourceCurrency) {
+            const converted = mockCurrencyConversion(amount, sourceCurrency, targetCurrency);
+            displayElement.textContent = `Company base currency conversion (Mock): ${converted} ${targetCurrency}`;
+        } else {
+            displayElement.textContent = `The expense will be converted to ${targetCurrency}.`;
+        }
+    }
+    
+    // Add listeners for conversion display updates
+    // Check if elements exist before adding listeners (important for Admin dashboard view)
+    if (document.getElementById('expense-amount')) {
+        document.getElementById('expense-amount').addEventListener('input', updateConversionDisplay);
+    }
+    if (document.getElementById('expense-currency')) {
+        document.getElementById('expense-currency').addEventListener('change', updateConversionDisplay);
+    }
+    
+    
+    window.handleNewExpense = function() {
+        currentExpense = null;
+        const form = document.getElementById('expense-form');
+        form.reset();
+        document.getElementById('expense-form-title').textContent = 'New Expense (Draft)';
+        
+        // Enable form fields
+        Array.from(form.elements).forEach(el => el.disabled = false);
+        document.getElementById('expense-remarks').disabled = false;
+        
+        // Show only action buttons, hide log
+        document.getElementById('btn-save-draft').classList.remove('hidden');
+        document.getElementById('btn-submit-expense').classList.remove('hidden');
+        document.getElementById('approval-log-section').classList.add('hidden');
+        document.getElementById('expense-message').classList.add('hidden');
+        updateConversionDisplay(); // Reset conversion message
+    }
+    
+    function setFormReadOnly(isReadOnly) {
+        const form = document.getElementById('expense-form');
+        Array.from(form.elements).forEach(el => el.disabled = isReadOnly);
+        document.getElementById('expense-remarks').disabled = isReadOnly;
+        
+        if (isReadOnly) {
+            document.getElementById('btn-save-draft').classList.add('hidden');
+            document.getElementById('btn-submit-expense').classList.add('hidden');
+        } else {
+            document.getElementById('btn-save-draft').classList.remove('hidden');
+            document.getElementById('btn-submit-expense').classList.remove('hidden');
+        }
+    }
+    
+    function renderExpenseForm(expense) {
+        currentExpense = expense;
+        document.getElementById('expense-form-title').textContent = expense.status === 'Draft' ? 'Edit Draft' : `Expense Details (${expense.status})`;
+        
+        document.getElementById('expense-date').value = expense.date;
+        document.getElementById('expense-category').value = expense.category;
+        document.getElementById('expense-description').value = expense.description;
+        document.getElementById('expense-amount').value = expense.amount;
+        document.getElementById('expense-currency').value = expense.currency;
+        document.getElementById('expense-remarks').value = expense.remarks;
+
+        const isEditable = expense.status === 'Draft';
+        setFormReadOnly(!isEditable);
+        
+        if (!isEditable) {
+            // Show log section if not a draft
+            document.getElementById('approval-log-section').classList.remove('hidden');
+            renderApprovalLog(expense);
+        } else {
+            document.getElementById('approval-log-section').classList.add('hidden');
+        }
+        
+        updateConversionDisplay();
+        switchEmployeeTab('new-expense'); // Switch to form view
+    }
+    
+    function renderApprovalLog(expense) {
+        const tbody = document.getElementById('approval-log-body');
+        tbody.innerHTML = '';
+        
+        // Mock a status flow for demonstration purposes
+        const mockLog = [
+            { approver: 'System', status: 'Submitted', time: expense.submissionDate },
+            { approver: 'Direct Manager (Mock)', status: 'Pending', time: 'N/A' }
+        ];
+        
+        if (expense.status === 'Approved' || expense.status === 'Rejected') {
+            // If expense has a final status, use it for the mock log
+            mockLog[1].status = expense.status;
+            mockLog[1].time = new Date(expense.updatedAt).toLocaleTimeString() + ' ' + new Date(expense.updatedAt).toLocaleDateString();
+        }
+
+
+        // Highlight current status path
+        document.getElementById('status-draft').classList.remove('text-green-600');
+        document.getElementById('status-pending').classList.remove('text-green-600', 'text-red-600');
+        document.getElementById('status-approved').classList.remove('text-green-600');
+        
+        if (expense.status === 'Draft') {
+            document.getElementById('status-draft').classList.add('text-green-600');
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center py-2 text-gray-500">Not submitted yet.</td></tr>`;
+        } else if (expense.status === 'Pending') {
+            document.getElementById('status-draft').classList.add('text-green-600');
+            document.getElementById('status-pending').classList.add('text-green-600');
+            
+            mockLog.forEach(log => {
+                const statusClass = log.status === 'Pending' ? 'text-orange-500' : 'text-gray-600';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-2 text-sm text-gray-900">${log.approver}</td>
+                        <td class="px-6 py-2 text-sm ${statusClass}">${log.status}</td>
+                        <td class="px-6 py-2 text-sm text-gray-500">${log.time}</td>
+                    </tr>
+                `;
+            });
+        } else if (expense.status === 'Approved') {
+            document.getElementById('status-draft').classList.add('text-green-600');
+            document.getElementById('status-pending').classList.add('text-green-600');
+            document.getElementById('status-approved').classList.add('text-green-600');
+            
+            mockLog.forEach(log => {
+                const statusClass = log.status === 'Approved' ? 'text-green-500' : 'text-gray-600';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="px-6 py-2 text-sm text-gray-900">${log.approver}</td>
+                        <td class="px-6 py-2 text-sm ${statusClass}">${log.status}</td>
+                        <td class="px-6 py-2 text-sm text-gray-500">${log.time}</td>
+                    </tr>
+                `;
+            });
+        } else if (expense.status === 'Rejected') {
+             document.getElementById('status-draft').classList.add('text-green-600');
+             document.getElementById('status-pending').classList.add('text-red-600');
+             
+             mockLog.forEach(log => {
+                 const statusClass = log.status === 'Rejected' ? 'text-red-500' : 'text-gray-600';
+                 tbody.innerHTML += `
+                     <tr>
+                         <td class="px-6 py-2 text-sm text-gray-900">${log.approver}</td>
+                         <td class="px-6 py-2 text-sm ${statusClass}">${log.status}</td>
+                         <td class="px-6 py-2 text-sm text-gray-500">${log.time}</td>
+                     </tr>
+                 `;
+             });
+        }
+    }
+
+    function getExpenseFormData() {
+        return {
+            date: document.getElementById('expense-date').value,
+            category: document.getElementById('expense-category').value,
+            description: document.getElementById('expense-description').value,
+            amount: parseFloat(document.getElementById('expense-amount').value),
+            currency: document.getElementById('expense-currency').value,
+            remarks: document.getElementById('expense-remarks').value,
+        };
+    }
+    
+    function validateExpenseForm(data) {
+        if (!data.date || !data.category || !data.description || isNaN(data.amount) || data.amount <= 0 || !data.currency) {
+            return "Please fill in all required fields (Date, Category, Description, Amount, Currency).";
+        }
+        return null;
+    }
+    
+    async function handleSaveDraft(event) {
+        event.preventDefault();
+        const data = getExpenseFormData();
+        const validationError = validateExpenseForm(data);
+        if (validationError) {
+            showExpenseMessage(validationError, true);
+            return;
+        }
+
+        const expenseRef = currentExpense 
+            ? doc(db, EXPENSES_PATH, currentExpense.id)
+            : doc(collection(db, EXPENSES_PATH)); // New document reference
+            
+        const expenseData = {
+            ...data,
+            id: expenseRef.id,
+            userId: currentEmployeeData.uid,
+            userName: currentEmployeeData.name,
+            companyId: currentCompanyId,
+            status: 'Draft',
+            baseCurrencyAmount: mockCurrencyConversion(data.amount, data.currency, companyBaseCurrency),
+            createdAt: currentExpense?.createdAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        try {
+            await setDoc(expenseRef, expenseData);
+            currentExpense = expenseData;
+            showExpenseMessage("Expense saved as Draft successfully!", false);
+            document.getElementById('expense-form-title').textContent = 'Edit Draft';
+        } catch (error) {
+            console.error("Error saving draft:", error);
+            showExpenseMessage(`Failed to save draft: ${error.message}`, true);
+        }
+    }
+    
+    async function handleSubmitExpense(event) {
+        event.preventDefault();
+        
+        // 1. Ensure expense is saved as a draft first or get the latest data
+        let data = currentExpense ? currentExpense : getExpenseFormData();
+        const validationError = validateExpenseForm(data);
+        if (validationError) {
+            showExpenseMessage(validationError, true);
+            return;
+        }
+        
+        if (!currentExpense) {
+            // Force a save draft if it's a new form before submitting
+            await handleSaveDraft(event);
+            data = currentExpense;
+            if (!data) return; // If draft failed, stop submission
+        }
+        
+        // 2. Update status to Pending
+        const expenseRef = doc(db, EXPENSES_PATH, data.id);
+        const submissionDate = new Date().toISOString();
+        
+        try {
+            await updateDoc(expenseRef, {
+                status: 'Pending',
+                submissionDate: submissionDate,
+                updatedAt: submissionDate
+            });
+            
+            // Update local state and UI
+            currentExpense.status = 'Pending';
+            currentExpense.submissionDate = submissionDate;
+            renderExpenseForm(currentExpense); // Renders read-only view
+            showExpenseMessage("Expense submitted for approval successfully!", false);
+
+        } catch (error) {
+            console.error("Error submitting expense:", error);
+            showExpenseMessage(`Failed to submit expense: ${error.message}`, true);
+        }
+    }
+    
+    function showExpenseMessage(message, isError) {
+        const msgElement = document.getElementById('expense-message');
+        msgElement.textContent = message;
+        msgElement.classList.remove('hidden', 'text-green-600', 'text-red-600');
+        msgElement.classList.add(isError ? 'text-red-600' : 'text-green-600');
+        setTimeout(() => msgElement.classList.add('hidden'), 5000);
+    }
+
+    function listenForEmployeeExpenses() {
+        if (!db || !currentEmployeeData) return;
+
+        const expensesQuery = query(
+            collection(db, EXPENSES_PATH), 
+            where("userId", "==", currentEmployeeData.uid)
+        );
+        
+        onSnapshot(expensesQuery, (snapshot) => {
+            employeeExpenses = [];
+            snapshot.forEach((doc) => {
+                employeeExpenses.push({ ...doc.data(), id: doc.id });
+            });
+            // Sort by update time (most recent activity first)
+            employeeExpenses.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+            
+            renderExpenseHistory(employeeExpenses);
+        }, (error) => {
+            console.error("Error listening to employee expenses:", error);
+        });
+    }
+
+    function renderExpenseHistory(expenses) {
+        const tbody = document.getElementById('history-table-body');
+        tbody.innerHTML = '';
+        
+        if (expenses.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No expenses submitted yet.</td></tr>`;
+            return;
+        }
+
+        expenses.forEach(expense => {
+            let statusClass = 'text-gray-700 bg-gray-200';
+            if (expense.status === 'Draft') statusClass = 'text-yellow-800 bg-yellow-100';
+            else if (expense.status === 'Pending') statusClass = 'text-orange-800 bg-orange-100';
+            else if (expense.status === 'Approved') statusClass = 'text-green-800 bg-green-100';
+            else if (expense.status === 'Rejected') statusClass = 'text-red-800 bg-red-100';
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-100 cursor-pointer';
+            row.setAttribute('onclick', `renderExpenseForm(employeeExpenses.find(e => e.id === '${expense.id}'))`);
+            
+            row.innerHTML = `
+                <td class="px-6 py-3 text-sm font-medium text-gray-900">${expense.description}</td>
+                <td class="px-6 py-3 text-sm text-gray-500">${expense.date}</td>
+                <td class="px-6 py-3 text-sm font-semibold text-gray-800">${expense.amount} ${expense.currency}</td>
+                <td class="px-6 py-3 text-sm text-gray-500">${expense.category}</td>
+                <td class="px-6 py-3 text-center">
+                    <span class="inline-flex px-3 py-1 text-xs font-semibold leading-5 rounded-full ${statusClass}">
+                        ${expense.status}
+                    </span>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // --- MANAGER DASHBOARD LOGIC (NEW) ---
+
+    function listenForManagerApprovals() {
+        if (!db || !currentEmployeeData || currentEmployeeData.role !== 'Manager') return;
+
+        // Query expenses submitted by employees whose managerId matches the current manager's UID, AND status is 'Pending'
+        const approvalsQuery = query(
+            collection(db, EXPENSES_PATH), 
+            where("companyId", "==", currentCompanyId),
+            // In a real multi-step approval flow, you would query approval request documents, 
+            // but for this simple version, we link directly through the employee's managerId.
+            // NOTE: This query is limited. A better approach requires querying USERS where managerId == managerUID, 
+            // then querying EXPENSES where userId is in that list. Since Firestore doesn't allow OR/IN across collections, 
+            // we will simulate by querying ALL pending expenses for the company and filtering client-side.
+            where("status", "==", "Pending") 
+        );
+        
+        // Listen for *all* Pending expenses in the company, then filter in render function.
+        onSnapshot(approvalsQuery, async (snapshot) => {
+            const pendingExpenses = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+            
+            // Get all employees and filter who reports to the current manager
+            const directReports = companyUsers.filter(u => u.managerId === currentEmployeeData.uid).map(u => u.uid);
+            
+            managerApprovals = pendingExpenses.filter(exp => directReports.includes(exp.userId));
+            
+            document.getElementById('pending-count').textContent = managerApprovals.length;
+            renderManagerApprovalsTable();
+        }, (error) => {
+            console.error("Error listening to manager approvals:", error);
+        });
+    }
+    
+    function renderManagerApprovalsTable() {
+        const tbody = document.getElementById('manager-approvals-table-body');
+        tbody.innerHTML = '';
+        
+        if (managerApprovals.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">No pending requests assigned to you.</td></tr>`;
+            return;
+        }
+
+        managerApprovals.forEach(expense => {
+            const requestOwner = expense.userName || 'Unknown Employee';
+            const originalAmount = `${expense.amount} ${expense.currency}`;
+            const baseAmount = `${expense.baseCurrencyAmount} ${companyBaseCurrency}`;
+            
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-orange-50 transition-colors duration-100';
+            
+            row.innerHTML = `
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">${expense.description}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${requestOwner}</td>
+                <td class="px-6 py-4 text-sm text-gray-500">${expense.category}</td>
+                <td class="px-6 py-4 text-sm text-orange-600 font-semibold">Pending</td>
+                <td class="px-6 py-4 text-sm text-gray-800">
+                    ${originalAmount} 
+                    <br>
+                    <span class="text-xs text-gray-500">
+                        (~ ${baseAmount})
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center space-x-2" id="actions-${expense.id}">
+                    <button onclick="handleApproveExpense('${expense.id}')" 
+                        class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors duration-200">
+                        Approve
+                    </button>
+                    <button onclick="handleRejectExpense('${expense.id}')" 
+                        class="bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors duration-200">
+                        Reject
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    async function handleApproveExpense(expenseId) {
+        // Find the expense object to verify status
+        const expense = managerApprovals.find(e => e.id === expenseId);
+        if (!expense || expense.status !== 'Pending') {
+             showManagerMessage('Error: Expense is not in a pending state.', true);
+             return;
+        }
+        
+        const expenseRef = doc(db, EXPENSES_PATH, expenseId);
+        
+        try {
+            await updateDoc(expenseRef, {
+                status: 'Approved',
+                updatedAt: new Date().toISOString(),
+                // Add manager's approval record (Simplified)
+                approvalManager: currentEmployeeData.name 
+            });
+            
+            showManagerMessage(`Expense for ${expense.userName} approved successfully.`, false);
+        } catch (error) {
+            console.error("Error approving expense:", error);
+            showManagerMessage(`Failed to approve expense: ${error.message}`, true);
+        }
+    }
+
+    async function handleRejectExpense(expenseId) {
+        // Find the expense object to verify status
+        const expense = managerApprovals.find(e => e.id === expenseId);
+        if (!expense || expense.status !== 'Pending') {
+             showManagerMessage('Error: Expense is not in a pending state.', true);
+             return;
+        }
+
+        showConfirmModal(
+            'Confirm Rejection', 
+            `Are you sure you want to **reject** the expense of ${expense.userName} for ${expense.amount} ${expense.currency}?`, 
+            async () => {
+                const expenseRef = doc(db, EXPENSES_PATH, expenseId);
+                try {
+                    await updateDoc(expenseRef, {
+                        status: 'Rejected',
+                        updatedAt: new Date().toISOString(),
+                        // Add manager's approval record (Simplified)
+                        approvalManager: currentEmployeeData.name 
+                    });
+                    showManagerMessage(`Expense for ${expense.userName} rejected successfully.`, false);
+                } catch (error) {
+                    console.error("Error rejecting expense:", error);
+                    showManagerMessage(`Failed to reject expense: ${error.message}`, true);
+                }
+            }, 
+            'Reject', 
+            'bg-red-600'
+        );
+    }
+    
+    function showManagerMessage(message, isError) {
+        const msgElement = document.getElementById('manager-message');
+        msgElement.textContent = message;
+        msgElement.classList.remove('hidden', 'text-green-600', 'text-red-600');
+        msgElement.classList.add(isError ? 'text-red-600' : 'text-green-600');
+        setTimeout(() => msgElement.classList.add('hidden'), 5000);
+    }
+
+
+    // --- ADMIN USER MANAGEMENT LOGIC (Existing) ---
+    // Includes updateUserRole and updateManagerRelationship for clarity/completeness
+    function listenForCompanyUsers() {
+        if (!db || !currentCompanyId) return;
+
+        const usersQuery = query(collection(db, USERS_PATH), where("companyId", "==", currentCompanyId));
+        
+        onSnapshot(usersQuery, (snapshot) => {
+            companyUsers = [];
+            snapshot.forEach((doc) => {
+                const user = doc.data();
+                companyUsers.push(user);
+            });
+            renderUsersTable();
+            populateApprovalRuleDropdowns();
+        }, (error) => {
+            console.error("Error listening to company users:", error);
+        });
+    }
+
+    function renderUsersTable() {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = '';
+        
+        const nonAdminUsers = companyUsers.filter(u => u.role !== 'Admin');
+        
+        if (nonAdminUsers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No employees or managers have been added yet.</td></tr>`;
+            return;
+        }
+
+        const managers = companyUsers.filter(u => u.role === 'Manager');
+
+        nonAdminUsers.forEach(user => {
+            const isManager = user.role === 'Manager';
+            
+            const roleSelect = `
+                <select onchange="updateUserRole('${user.uid}', this.value)" 
+                    class="p-2 border rounded-lg bg-white w-full text-sm">
+                    <option value="Employee" ${user.role === 'Employee' ? 'selected' : ''}>Employee</option>
+                    <option value="Manager" ${user.role === 'Manager' ? 'selected' : ''}>Manager</option>
+                </select>
+            `;
+
+            let managerSelect = '';
+            if (!isManager) {
+                managerSelect = `
+                    <select onchange="updateManagerRelationship('${user.uid}', this.value)" 
+                        class="p-2 border rounded-lg bg-white w-full text-sm">
+                        <option value="" ${!user.managerId ? 'selected' : ''}>-- No Manager --</option>
+                        ${managers.map(manager => `
+                            <option value="${manager.uid}" ${user.managerId === manager.uid ? 'selected' : ''}>
+                                ${manager.name}
+                            </option>
+                        `).join('')}
+                    </select>
+                `;
+            } else {
+                managerSelect = `<span class="text-gray-500 italic">N/A</span>`;
+            }
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-100';
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                    <div class="text-sm text-gray-500">${user.email}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">${roleSelect}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${managerSelect}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <button onclick="simulatePasswordSend('${user.email}')" 
+                        class="bg-yellow-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors duration-200">
+                        Send Password
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    async function handleCreateUser(event) {
+        event.preventDefault();
+        const name = document.getElementById('new-user-name').value;
+        const email = document.getElementById('new-user-email').value;
+        const role = document.getElementById('new-user-role').value;
+        const msgElement = document.getElementById('user-creation-message');
+        const btn = document.getElementById('create-user-btn');
+
+        msgElement.classList.add('hidden');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+
+        try {
+            // Check if user already exists across the entire USERS_PATH 
+            const q = query(collection(db, USERS_PATH), where("email", "==", email));
+            const existingUsers = await getDocs(q);
+
+            if (!existingUsers.empty) {
+                msgElement.textContent = `User with email ${email} already exists. They should use the Sign In tab.`;
+                msgElement.classList.remove('hidden');
+                msgElement.classList.add('text-red-600');
+                return;
+            }
+
+            const newUid = 'temp_' + crypto.randomUUID(); 
+            
+            await setDoc(doc(db, USERS_PATH, newUid), {
+                uid: newUid,
+                name: name,
+                email: email,
+                role: role,
+                companyId: currentCompanyId,
+                managerId: null,
+                isPlaceholder: true, 
+                createdAt: new Date().toISOString()
+            });
+
+            msgElement.textContent = `User ${name} (${role}) added successfully. They can now sign in using the Sign In tab.`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.remove('text-red-600');
+            msgElement.classList.add('text-green-600');
+
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-email').value = '';
+
+        } catch (error) {
+            console.error("Error creating user:", error);
+            msgElement.textContent = `Failed to create user: ${error.message}`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-600');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Add User';
+            setTimeout(() => msgElement.classList.add('hidden'), 5000);
+        }
+    }
+
+    // --- ADMIN RULES LOGIC ---
+    
+    function populateApprovalRuleDropdowns() {
+        const userDropdown = document.getElementById('rule-user');
+        const managerDropdown = document.getElementById('rule-manager');
+        
+        const nonAdminUsers = companyUsers.filter(u => u.role !== 'Admin');
+        const managers = companyUsers.filter(u => u.role === 'Manager');
+
+        userDropdown.innerHTML = `<option value="" disabled selected>Select user for this rule</option>`;
+        userDropdown.innerHTML += `<option value="All">All Users (Global Rule)</option>`;
+        nonAdminUsers.forEach(user => {
+            userDropdown.innerHTML += `<option value="${user.uid}">${user.name} (${user.role})</option>`;
+        });
+
+        managerDropdown.innerHTML = `<option value="" selected>Initially set on user record</option>`;
+        managers.forEach(manager => {
+            managerDropdown.innerHTML += `<option value="${manager.uid}">${manager.name}</option>`;
+        });
+        
+        renderApproversList();
+    }
+    
+    window.renderApproversList = function() {
+        const container = document.getElementById('approvers-list');
+        const isManagerApprover = document.getElementById('is-manager-approver').checked;
+        
+        // Filter out Admins and the currently logged in admin user
+        const nonAdminUsers = companyUsers.filter(u => u.role !== 'Admin' && u.uid !== (currentUser ? currentUser.uid : SIMULATED_ADMIN_UID));
+
+        container.innerHTML = '';
+        
+        if (isManagerApprover) {
+            container.innerHTML += `
+                <div class="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200 text-sm">
+                    <span class="w-1/3 font-semibold text-yellow-800">1. Direct Manager (Auto)</span>
+                    <div class="w-1/5 text-center text-yellow-800">
+                        <input type="checkbox" checked disabled class="h-4 w-4 text-yellow-600 border-gray-300 rounded">
+                    </div>
+                    <span class="w-1/3 text-center text-yellow-800 text-xs italic">Default approval goes to the user's manager.</span>
+                    <span class="w-1/12"></span>
+                </div>
+            `;
+        }
+
+        currentApprovers.forEach((approver, index) => {
+            const approverIndex = (isManagerApprover ? 1 : 0) + index + 1;
+
+            const approverOptions = nonAdminUsers.map(user => `
+                <option value="${user.uid}" ${approver.uid === user.uid ? 'selected' : ''}>${user.name} (${user.role})</option>
+            `).join('');
+
+            container.innerHTML += `
+                <div class="flex items-center space-x-2 p-1 border-b border-gray-100 last:border-b-0">
+                    <span class="text-xs w-4">${approverIndex}.</span>
+                    <select id="approver-user-${index}" data-index="${index}" class="w-1/3 p-2 border rounded-lg bg-white text-sm" onchange="updateApprover(this)">
+                        <option value="Role_Manager" ${approver.type === 'Role' && approver.uid === 'Manager' ? 'selected' : ''}>Role: Any Manager</option>
+                        ${approverOptions}
+                    </select>
+                    <div class="w-1/5 text-center flex items-center justify-center">
+                        <input type="checkbox" id="approver-required-${index}" data-index="${index}" ${approver.required ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded" onchange="updateApprover(this)">
+                       <span class="text-xs text-gray-500 ml-2">(Required)</span>
+                    </div>
+                    <div class="w-1/3 text-center text-xs text-gray-500 italic">
+                        If this field is ticked then employee approval of this approver is required in any approval combination scenarios.
+                    </div>
+                    <button type="button" onclick="removeApprover(${index})" class="w-1/12 text-red-500 hover:text-red-700 p-1 rounded-full">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `;
+        });
+    }
+
+    async function handleSaveApprovalRule(event) {
+        event.preventDefault();
+
+        const ruleUser = document.getElementById('rule-user').value;
+        const ruleManager = document.getElementById('rule-manager').value;
+        const description = document.getElementById('rule-description').value;
+        const isManagerApprover = document.getElementById('is-manager-approver').checked;
+        const sequenceRequired = document.getElementById('approvers-sequence-required').checked;
+        const minApprovalPercentage = parseInt(document.getElementById('min-approval-percentage').value);
+        const msgElement = document.getElementById('rule-save-message');
+        const btn = document.getElementById('save-rule-btn');
+        
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        msgElement.classList.add('hidden');
+
+        let appliesTo = { 
+            type: ruleUser === 'All' ? 'All' : 'User', 
+            uid: ruleUser === 'All' ? null : ruleUser,
+            managerUid: ruleManager || null 
+        };
+
+        let finalApprovers = [];
+        if (isManagerApprover) {
+            finalApprovers.push({
+                type: 'Role',
+                uid: 'DirectManager', 
+                name: 'Direct Manager',
+                required: true, 
+                isManager: true
+            });
+        }
+        
+        finalApprovers = finalApprovers.concat(currentApprovers.map(a => ({
+            ...a,
+            name: a.type === 'Role' ? `Role: ${a.uid}` : companyUsers.find(u => u.uid === a.uid)?.name || 'Unknown User',
+            isManager: a.uid === 'Role_Manager'
+        })));
+        
+        if (finalApprovers.length === 0) {
+            msgElement.textContent = 'Please add at least one approver.';
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-600');
+            btn.disabled = false;
+            btn.textContent = 'Save Approval Rule';
+            return;
+        }
+
+        const ruleData = {
+            description,
+            appliesTo,
+            isManagerApprover,
+            approvers: finalApprovers,
+            sequenceRequired,
+            minApprovalPercentage,
+            companyId: currentCompanyId,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await addDoc(collection(db, RULES_PATH), ruleData);
+            msgElement.textContent = 'Approval rule saved successfully!';
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-green-600');
+            
+            document.getElementById('approval-rule-form').reset();
+            currentApprovers = [];
+            renderApproversList();
+            populateApprovalRuleDropdowns();
+
+        } catch (error) {
+            console.error("Error saving rule:", error);
+            msgElement.textContent = `Failed to save rule: ${error.message}`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-600');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Approval Rule';
+            setTimeout(() => msgElement.classList.add('hidden'), 5000);
+        }
+    }
+
+    // FIX: Updated to use custom modal instead of window.confirm
+    window.deleteApprovalRule = function(ruleId) {
+        showConfirmModal(
+            'Confirm Deletion', 
+            'Are you sure you want to permanently delete this approval rule? This cannot be undone.', 
+            async () => {
+                try {
+                    await deleteDoc(doc(db, RULES_PATH, ruleId));
+                    // Success is handled by the onSnapshot listener, but show a success modal too
+                    showConfirmModal('Success', 'Approval rule deleted successfully.', null, 'OK');
+                } catch (error) {
+                    console.error("Error deleting rule:", error);
+                    showConfirmModal('Error', 'Failed to delete rule: ' + error.message, null, 'OK');
+                }
+            }, 
+            'Delete', 
+            'bg-red-600'
+        );
+    }
+
+    function listenForApprovalRules() {
+        if (!db || !currentCompanyId) return;
+        const rulesQuery = query(collection(db, RULES_PATH), where("companyId", "==", currentCompanyId));
+        
+        onSnapshot(rulesQuery, (snapshot) => {
+            const tbody = document.getElementById('rules-table-body');
+            tbody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No approval rules defined yet.</td></tr>`;
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const rule = doc.data();
+                const ruleId = doc.id;
+                
+                let appliesToText = '';
+                if (rule.appliesTo.type === 'All') {
+                    appliesToText = 'All Users';
+                } else if (rule.appliesTo.type === 'User') {
+                    const user = companyUsers.find(u => u.uid === rule.appliesTo.uid);
+                    const manager = companyUsers.find(u => u.uid === rule.appliesTo.managerUid);
+                    appliesToText = `User: ${user ? user.name : 'Unknown'}`;
+                    if (manager) {
+                        appliesToText += `<br><span class="text-xs text-gray-400">Mgr Override: ${manager.name}</span>`;
+                    }
+                }
+                
+                const approversList = rule.approvers.map((a, index) => {
+                    let name = a.name;
+                    if (a.type === 'Role' && a.uid === 'DirectManager') name = 'Direct Manager';
+                    
+                    const requiredStar = a.required ? ' <span class="text-red-500">*</span>' : '';
+                    const sequenceMarker = rule.sequenceRequired ? (index + 1) + '. ' : '';
+                    
+                    return `${sequenceMarker}${name}${requiredStar}`;
+                }).join('; ');
+                
+                const sequenceInfo = rule.sequenceRequired ? ' (Sequential)' : ' (Parallel)';
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors duration-100';
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${rule.description}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${appliesToText}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        ${approversList} ${sequenceInfo} <br>
+                        <span class="text-xs text-gray-400">Min Approval: ${rule.minApprovalPercentage}%</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <button onclick="deleteApprovalRule('${ruleId}')" 
+                            class="text-red-500 hover:text-red-700 text-sm font-medium transition-colors duration-200">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }, (error) => {
+            console.error("Error listening to approval rules:", error);
+        });
+    }
+
+    // --- AUTHENTICATION HANDLERS ---
+    function displayAuthMessage(message, isError = false) {
+        const msgBox = document.getElementById('auth-message-box');
+        msgBox.textContent = message;
+        msgBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+        if (isError) {
+            msgBox.classList.add('bg-red-100', 'text-red-700');
+        } else {
+            msgBox.classList.add('bg-green-100', 'text-green-700');
+        }
+    }
+
+    async function handleSignUp(event) {
+        event.preventDefault();
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const name = document.getElementById('signup-name').value;
+        const countryCode = document.getElementById('signup-country').value;
+        
+        if (password !== confirmPassword) {
+            displayAuthMessage("Passwords do not match.", true);
+            return;
+        }
+
+        const btn = document.getElementById('signup-btn');
+        btn.disabled = true;
+        btn.textContent = 'Signing up...';
+
+        if (SIMULATION_MODE) {
+            const simulatedUser = {
+                uid: SIMULATED_ADMIN_UID,
+                name: name,
+                email: email,
+                role: 'Admin',
+            };
+            
+            const companyId = SIMULATED_ADMIN_UID + "_company"; 
+            simulatedUser.companyId = companyId;
+            const currency = currencyMap[countryCode] || 'EUR';
+
+
+            try {
+                const userDocRef = doc(db, USERS_PATH, simulatedUser.uid);
+                const userSnap = await getDoc(userDocRef);
+                
+                if (!userSnap.exists()) {
+                    await setDoc(doc(db, COMPANIES_PATH, companyId), {
+                        id: companyId,
+                        baseCurrency: currency,
+                        adminUid: simulatedUser.uid,
+                        createdAt: new Date().toISOString()
+                    });
+
+                    await setDoc(userDocRef, {
+                        ...simulatedUser,
+                        managerId: null,
+                        createdAt: new Date().toISOString()
+                    });
+                    displayAuthMessage("Simulated Admin account and company created successfully! Redirecting to dashboard...", false);
+                } else {
+                    displayAuthMessage("Simulated Admin user already set up. Redirecting to dashboard...", false);
+                }
+                
+                currentUser = { uid: simulatedUser.uid }; 
+                checkUserRoleAndLoadDashboard(simulatedUser.uid);
+
+
+            } catch (error) {
+                console.error("Simulated Sign up failed:", error);
+                displayAuthMessage(`Simulated Sign up failed: ${error.message}.`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign Up';
+            }
+            return;
+        }
+        // Firebase Live Logic (Not supported in this environment as per instructions)
+    }
+
+    async function handleSignIn(event) {
+        event.preventDefault();
+        const email = document.getElementById('signin-email').value;
+        // const password = document.getElementById('signin-password').value; // Not used in email-only simulation
+        
+        const btn = document.getElementById('signin-btn');
+        btn.disabled = true;
+        btn.textContent = 'Logging in...';
+        
+        if (SIMULATION_MODE) {
+            try {
+                const q = query(collection(db, USERS_PATH), where("email", "==", email));
+                const existingUsers = await getDocs(q);
+
+                if (existingUsers.empty) {
+                     displayAuthMessage("No user found with this email. Please use the 'Sign Up (Simulated)' tab first if you're the Admin, or ask the Admin to add your email.", true);
+                     return;
+                }
+                
+                const userSnap = existingUsers.docs[0];
+                const userData = userSnap.data();
+                
+                // Simulate successful sign-in if user exists
+                if (userData.companyId) {
+                    currentUser = { uid: userData.uid }; 
+                    checkUserRoleAndLoadDashboard(userData.uid);
+                    displayAuthMessage(`Simulated Login successful as ${userData.role}! Redirecting to dashboard...`, false);
+                } else {
+                    displayAuthMessage("User record found but missing company ID. Please contact support.", true);
+                }
+            } catch (error) {
+                console.error("Simulated Sign in failed:", error);
+                displayAuthMessage(`Simulated Sign in failed: ${error.message}.`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+            return;
+        }
+        // Firebase Live Logic (Not supported in this environment as per instructions)
+    }
+
+    window.updateUserRole = async function(uid, newRole) {
+        if (!db) return;
+        const userRef = doc(db, USERS_PATH, uid);
+        
+        try {
+            await updateDoc(userRef, { 
+                role: newRole,
+                managerId: newRole === 'Manager' ? null : companyUsers.find(u => u.uid === uid)?.managerId || null
+            });
+            console.log(`User ${uid} role updated to ${newRole}`);
+        } catch (error) {
+            console.error("Error updating user role:", error);
+        }
+    }
+    
+    window.updateManagerRelationship = async function(uid, managerUid) {
+        if (!db) return;
+        const userRef = doc(db, USERS_PATH, uid);
+        
+        try {
+            await updateDoc(userRef, { managerId: managerUid || null });
+            console.log(`User ${uid} manager relationship updated to ${managerUid || 'none'}`);
+        } catch (error) {
+            console.error("Error updating manager relationship:", error);
+        }
+    }
+
+    window.showPasswordResetModal = function() {
+        document.getElementById('reset-modal').classList.remove('hidden');
+        document.getElementById('reset-modal').classList.add('flex');
+        document.getElementById('reset-message').textContent = '';
+    }
+
+    window.hidePasswordResetModal = function() {
+        document.getElementById('reset-modal').classList.add('hidden');
+        document.getElementById('reset-modal').classList.remove('flex');
+    }
+
+    window.handlePasswordReset = async function() {
+        const email = document.getElementById('reset-email').value;
+        const msgElement = document.getElementById('reset-message');
+
+        if (SIMULATION_MODE) {
+            msgElement.textContent = "[SIMULATION] Password reset is not available. Use the 'Sign In (Simulated)' tab.";
+            msgElement.className = 'mt-3 text-sm text-red-600';
+            return;
+        }
+
+        msgElement.textContent = 'Sending reset link...';
+        msgElement.className = 'mt-3 text-sm text-gray-500';
+
+        if (!email) {
+            msgElement.textContent = 'Please enter an email address.';
+            msgElement.className = 'mt-3 text-sm text-red-600';
+            return;
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            msgElement.textContent = `Password reset link sent to ${email}. Check your inbox.`;
+            msgElement.className = 'mt-3 text-sm text-green-600';
+            document.getElementById('reset-email').value = '';
+        } catch (error) {
+            console.error("Password reset failed:", error);
+            msgElement.textContent = `Error sending reset link. Please check the email address.`;
+            msgElement.className = 'mt-3 text-sm text-red-600';
+        }
+    }
+
+
+    window.addApprover = function() {
+        const firstUser = companyUsers.find(u => u.role !== 'Admin');
+
+        currentApprovers.push({
+            uid: firstUser ? firstUser.uid : 'Manager', 
+            name: firstUser ? firstUser.name : 'Role: Any Manager',
+            type: firstUser ? 'User' : 'Role',
+            required: true
+        });
+        renderApproversList();
+    }
+
+    window.removeApprover = function(index) {
+        currentApprovers.splice(index, 1);
+        renderApproversList();
+    }
+
+    window.updateApprover = function(element) {
+        const index = parseInt(element.getAttribute('data-index'));
+        const approver = currentApprovers[index];
+
+        if (element.type === 'select-one') {
+            const value = element.value;
+            if (value.startsWith('Role_')) {
+                approver.type = 'Role';
+                approver.uid = value.split('_')[1];
+                approver.name = 'Role: ' + approver.uid;
+            } else {
+                approver.type = 'User';
+                approver.uid = value;
+                approver.name = companyUsers.find(u => u.uid === value)?.name || 'Unknown User';
+            }
+        } else if (element.type === 'checkbox') {
+            if (element.id.startsWith('approver-required')) {
+                approver.required = element.checked;
+            } 
+        }
+    }
+    
+    // --- EXPOSE GLOBAL FUNCTIONS ---
+    window.switchAuthView = switchAuthView; 
+    window.handleSignUp = handleSignUp;
+    window.handleSignIn = handleSignIn;
+    window.handleSignOut = handleSignOut; 
+    window.handleCreateUser = handleCreateUser;
+    window.switchView = switchView;
+    
+    // Exposed Admin Functions
+    window.switchAdminTab = switchAdminTab;
+    window.handleSaveApprovalRule = handleSaveApprovalRule; 
+    window.deleteApprovalRule = deleteApprovalRule; 
+    window.renderApproversList = renderApproversList;
+    window.addApprover = addApprover;
+    window.removeApprover = removeApprover;
+    window.updateApprover = updateApprover;
+    window.updateUserRole = updateUserRole; 
+    window.updateManagerRelationship = updateManagerRelationship; 
+    
+    // Exposed Employee Functions
+    window.switchEmployeeTab = switchEmployeeTab;
+    window.handleNewExpense = handleNewExpense;
+    window.handleSaveDraft = handleSaveDraft;
+    window.handleSubmitExpense = handleSubmitExpense;
+    window.renderExpenseForm = renderExpenseForm;
+    window.triggerReceiptUpload = triggerReceiptUpload; // NEW OCR EXPOSURE
+    window.simulateOCR = simulateOCR;                   // NEW OCR EXPOSURE
+
+    // Exposed Manager Functions 
+    window.handleApproveExpense = handleApproveExpense;
+    window.handleRejectExpense = handleRejectExpense;
+
+    // Exposed Modal Functions
+    window.showPasswordResetModal = showPasswordResetModal;
+    window.hidePasswordResetModal = hidePasswordResetModal;
+    window.handlePasswordReset = handlePasswordReset;
+    window.showConfirmModal = showConfirmModal;
+    window.hideConfirmModal = hideConfirmModal;
+
+
+    // Start the application on window load
+    window.onload = initializeAppServices;
+</script>
+
+</body>
+</html>
