@@ -3,265 +3,840 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up / Sign In</title>
+    <title>Company Auth & Management</title>
     <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Custom styles for the Inter font and main background */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light gray-blue background */
-        }
-        /* Custom focus state to match the clean design */
-        input:focus, select:focus {
-            border-color: #3b82f6 !important; /* Blue-500 */
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
-            outline: none;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7fa; }
+        .card { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .main-container { min-height: 100vh; }
+        /* Simple focus style */
+        input:focus, select:focus, button:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary-blue': '#3b82f6',
-                        'secondary-gray': '#6b7280',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div id="app-container" class="w-full max-w-md">
+<div id="app" class="main-container flex items-center justify-center p-4">
+    <div id="loading-view" class="flex flex-col items-center justify-center p-8 text-lg font-semibold text-gray-700">
+        <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Loading application...
+    </div>
 
-        <!-- SIGN UP FORM (Admin/Company Signup Page) -->
-        <div id="signup-form" class="bg-white p-8 rounded-xl shadow-2xl transition-opacity duration-500">
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Admin (Company) Sign Up</h1>
-            <p class="text-sm text-center text-gray-500 mb-8">1 admin user per company</p>
+    <!-- Auth View Container -->
+    <div id="auth-view" class="hidden w-full max-w-lg">
+        <div id="auth-message-box" class="hidden p-3 mb-4 rounded-lg text-sm" role="alert"></div>
 
-            <form onsubmit="handleSignup(event)">
-                
-                <!-- Name Input -->
+        <!-- Tab Controls -->
+        <div class="flex mb-6 bg-white p-1 rounded-xl card shadow-sm">
+            <button id="tab-signup" onclick="switchAuthView('signup')" class="w-1/2 py-2 text-center rounded-xl font-semibold transition-colors duration-200">Sign Up (Simulated)</button>
+            <button id="tab-signin" onclick="switchAuthView('signin')" class="w-1/2 py-2 text-center rounded-xl font-semibold transition-colors duration-200">Sign In (Simulated)</button>
+        </div>
+
+        <!-- Sign Up Form (Admin) -->
+        <div id="signup-form" class="bg-white p-8 rounded-xl card transition-all duration-300">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Admin Sign Up (Simulation)</h2>
+            <form onsubmit="handleSignUp(event)">
                 <div class="mb-4">
-                    <label for="signup-name" class="block text-sm font-medium text-gray-700">Name</label>
-                    <input type="text" id="signup-name" name="name" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue transition duration-150">
+                    <label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="signup-name" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
-
-                <!-- Email Input -->
                 <div class="mb-4">
-                    <label for="signup-email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="signup-email" name="email" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue transition duration-150">
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signup-email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
-
-                <!-- Password Input -->
                 <div class="mb-4">
-                    <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="signup-password" name="password" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue transition duration-150">
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signup-password" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
-
-                <!-- Confirm Password Input -->
                 <div class="mb-4">
-                    <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                    <input type="password" id="signup-confirm-password" name="confirmPassword" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue transition duration-150">
+                    <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
-                
-                <!-- Designation Dropdown (Added as requested) -->
-                <div class="mb-4">
-                    <label for="signup-designation" class="block text-sm font-medium text-gray-700">Designation</label>
-                    <select id="signup-designation" name="designation" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg appearance-none bg-white focus:ring-primary-blue focus:border-primary-blue transition duration-150">
-                        <option value="" disabled selected>Select your designation</option>
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="employee">Employee</option>
-                    </select>
-                </div>
-
-                <!-- Country Selection Dropdown (Mocked) -->
                 <div class="mb-6">
-                    <label for="signup-country" class="block text-sm font-medium text-gray-700">Country Selection</label>
-                    <select id="signup-country" name="country" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg appearance-none bg-white focus:ring-primary-blue focus:border-primary-blue transition duration-150">
-                        <option value="" disabled selected>Select a Country</option>
-                        <!-- In a real app, this list would be populated dynamically from an API or large data source -->
-                        <option value="US">United States</option>
-                        <option value="CA">Canada</option>
-                        <option value="IN">India</option>
-                        <option value="GB">United Kingdom</option>
-                        <option value="AU">Australia</option>
+                    <label for="signup-country" class="block text-sm font-medium text-gray-700 mb-1">Country (Sets Company Base Currency)</label>
+                    <select id="signup-country" required class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500">
+                        <option value="" disabled selected>Select a country</option>
+                        <option value="US">United States (USD)</option>
+                        <option value="GB">United Kingdom (GBP)</option>
+                        <option value="JP">Japan (JPY)</option>
+                        <option value="IN">India (INR)</option>
+                        <option value="FR">France (EUR)</option>
+                        <option value="DE">Germany (EUR)</option>
+                        <option value="BR">Brazil (BRL)</option>
+                        <option value="AU">Australia (AUD)</option>
                     </select>
-                    <p class="text-xs text-gray-500 mt-1">The selected country's currency is set as the company's base currency.</p>
                 </div>
-
-                <!-- Signup Button -->
-                <button type="submit" class="w-full bg-primary-blue text-white font-semibold py-3 rounded-lg hover:bg-blue-600 transition duration-300 shadow-md hover:shadow-lg">
+                <button type="submit" id="signup-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200">
                     Sign Up
                 </button>
             </form>
-
-            <!-- Switch to Sign In -->
-            <div class="mt-6 text-center">
-                <p class="text-sm text-gray-600">
-                    Already have an account? 
-                    <button onclick="showSignin()" class="text-primary-blue hover:text-blue-700 font-medium transition duration-150">
-                        Sign In
-                    </button>
-                </p>
-            </div>
         </div>
-        
-        <!-- SIGN IN FORM (Initially Hidden) -->
-        <div id="signin-form" class="bg-white p-8 rounded-xl shadow-2xl transition-opacity duration-500 hidden opacity-0">
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Sign In Page</h1>
 
-            <form onsubmit="handleSignin(event)">
-
-                <!-- Email Input -->
+        <!-- Sign In Form -->
+        <div id="signin-form" class="bg-white p-8 rounded-xl card hidden transition-all duration-300">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Sign In (Simulation)</h2>
+            <form onsubmit="handleSignIn(event)">
                 <div class="mb-4">
-                    <label for="signin-email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="signin-email" name="email" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue transition duration-150">
+                    <label for="signin-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signin-email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
-
-                <!-- Password Input -->
-                <div class="mb-4">
-                    <label for="signin-password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="signin-password" name="password" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-primary-blue focus:border-primary-blue transition duration-150">
-                </div>
-
-                <!-- Designation Dropdown (Added as requested) -->
                 <div class="mb-6">
-                    <label for="signin-designation" class="block text-sm font-medium text-gray-700">Designation</label>
-                    <select id="signin-designation" name="designation" required class="mt-1 w-full p-3 border border-gray-300 rounded-lg appearance-none bg-white focus:ring-primary-blue focus:border-primary-blue transition duration-150">
-                        <option value="" disabled selected>Select your designation</option>
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="employee">Employee</option>
-                    </select>
+                    <label for="signin-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signin-password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                 </div>
-
-                <!-- Login Button -->
-                <button type="submit" class="w-full bg-green-500 text-white font-semibold py-3 rounded-lg hover:bg-green-600 transition duration-300 shadow-md hover:shadow-lg">
+                <button type="submit" id="signin-btn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 mb-4">
                     Login
                 </button>
             </form>
-
-            <!-- Links -->
-            <div class="mt-6 text-center">
-                <p class="text-sm mb-2">
-                    Don't have an account? 
-                    <button onclick="showSignup()" class="text-primary-blue hover:text-blue-700 font-medium transition duration-150">
-                        Sign Up
-                    </button>
-                </p>
-                <button onclick="showCustomMessage('Forgot Password functionality would route to a recovery page.')" class="text-sm text-secondary-gray hover:text-gray-900 transition duration-150">
-                    Forgot password?
-                </button>
-            </div>
+            <p class="text-center text-sm text-gray-600">
+                <a href="#" onclick="showPasswordResetModal()" class="text-blue-600 hover:text-blue-800 font-medium">Forgot password? (Not available in simulation)</a>
+            </p>
         </div>
-        
-        <!-- Custom Message Modal (Replaces alert()) -->
-        <div id="message-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full">
-                <h3 id="modal-title" class="text-xl font-bold mb-3 text-gray-800">Status</h3>
-                <p id="modal-text" class="text-gray-700 mb-4"></p>
-                <button onclick="hideCustomMessage()" class="w-full bg-primary-blue text-white font-semibold py-2 rounded-lg hover:bg-blue-600 transition duration-300">
-                    Close
-                </button>
-            </div>
-        </div>
-
     </div>
 
-    <script>
-        // --- View Switching Logic ---
+    <!-- Admin Dashboard View Container -->
+    <div id="dashboard-view" class="hidden w-full max-w-7xl mx-auto p-4 md:p-8">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <div class="text-gray-800">
+                <h1 class="text-3xl font-extrabold flex items-center">
+                    <svg class="w-8 h-8 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20v-2c0-.57-.101-1.117-.29-1.625M21 17.5V20m-4-7a4 4 0 11-8 0 4 4 0 018 0zM12 14v1a3 3 0 00-3 3h6a3 3 0 00-3-3v-1M4 5h16M4 8h16M4 11h16M4 14h16M4 17h16"></path></svg>
+                    Company Admin Dashboard
+                </h1>
+                <p id="company-info" class="text-sm text-gray-500 mt-1"></p>
+            </div>
+            <button onclick="handleSignOut()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m-4-2h12a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z"></path></svg>
+                Sign Out
+            </button>
+        </div>
+
+        <!-- Add New Employee/Manager Section -->
+        <div class="bg-white p-6 rounded-xl card mb-8">
+            <h3 class="text-xl font-bold mb-4 text-gray-700">Add New Company User</h3>
+            <form onsubmit="handleCreateUser(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                <div class="md:col-span-1">
+                    <label for="new-user-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                    <input type="text" id="new-user-name" placeholder="John Doe" required class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="new-user-email" placeholder="john@company.com" required class="w-full p-3 border border-gray-300 rounded-lg">
+                </div>
+                <div class="md:col-span-1">
+                    <label for="new-user-role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select id="new-user-role" required class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                        <option value="Employee">Employee</option>
+                        <option value="Manager">Manager</option>
+                    </select>
+                </div>
+                <div class="md:col-span-1">
+                    <button type="submit" id="create-user-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                        Add User
+                    </button>
+                </div>
+            </form>
+            <p id="user-creation-message" class="mt-3 text-sm hidden"></p>
+        </div>
+
+        <!-- Users Table Section -->
+        <div class="bg-white p-6 rounded-xl card overflow-x-auto">
+            <h3 class="text-xl font-bold mb-4 text-gray-700">Company Users</h3>
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Name / Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Manager</th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
+                    <!-- User rows will be inserted here by JavaScript -->
+                    <tr><td colspan="4" class="text-center py-4 text-gray-500">No employees or managers have been added yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Global Message/Modal for Password Reset -->
+    <div id="reset-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-xl card max-w-sm w-full">
+            <h3 class="text-lg font-bold mb-4">Forgot Password</h3>
+            <p class="text-sm text-gray-600 mb-4">Enter your email address. We will send a simulated temporary password.</p>
+            <input type="email" id="reset-email" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg mb-4">
+            <button onclick="handlePasswordReset()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Send Reset Link</button>
+            <button onclick="hidePasswordResetModal()" class="w-full mt-2 text-gray-600 py-2">Cancel</button>
+            <p id="reset-message" class="mt-3 text-sm"></p>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Firebase Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+        getAuth, 
+        signInAnonymously, 
+        signInWithCustomToken, 
+        onAuthStateChanged, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        signOut, 
+        sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+        getFirestore, 
+        doc, 
+        setDoc, 
+        updateDoc, 
+        onSnapshot, 
+        collection, 
+        query, 
+        where, 
+        getDocs, 
+        getDoc,
+        setLogLevel 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- GLOBAL STATE & FIREBASE SETUP ---
+    let app, auth, db;
+    let currentUser = null;
+    let currentCompanyId = null;
+    let companyBaseCurrency = 'USD';
+    let companyUsers = [];
+    let isAuthReady = false;
+    
+    // START SIMULATION MODE: Set to TRUE to bypass Firebase Auth and immediately access the Admin Dashboard.
+    const SIMULATION_MODE = true; 
+    const SIMULATED_ADMIN_UID = "sim_admin_12345"; 
+
+
+    // Global variables from Canvas Environment
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // Currency mapping based on country selection
+    const currencyMap = {
+        'US': 'USD', 'GB': 'GBP', 'JP': 'JPY', 'IN': 'INR', 'FR': 'EUR', 'DE': 'EUR', 'BR': 'BRL', 'AU': 'AUD'
+    };
+
+    // Firestore Path Constants
+    const COMPANIES_PATH = `/artifacts/${appId}/public/data/companies`;
+    const USERS_PATH = `/artifacts/${appId}/public/data/users`;
+
+    // Initialize Firebase
+    function initializeAppServices() {
+        try {
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is missing. Cannot initialize Firebase.");
+                // Provide dummy feedback for UI
+                document.getElementById('loading-view').innerHTML = '<p class="text-red-600">Error: Firebase configuration is missing.</p>';
+                return;
+            }
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setLogLevel('debug');
+            
+            // --- SIMULATION MODE INITIALIZATION ---
+            if (SIMULATION_MODE) {
+                document.getElementById('loading-view').classList.add('hidden');
+                // The onAuthStateChanged listener is still needed for Canvas's custom token, but we override 
+                // the logic in handleSignUp/handleSignIn below. We just need a Firebase-connected user (anonymous)
+                // for Firestore to work.
+                handleInitialAuth().finally(() => {
+                    switchView('auth');
+                    switchAuthView('signup');
+                });
+            } else {
+            // --- ORIGINAL FIREBASE AUTH INITIALIZATION ---
+                onAuthStateChanged(auth, (user) => {
+                    isAuthReady = true;
+                    document.getElementById('loading-view').classList.add('hidden');
+                    
+                    if (user) {
+                        currentUser = user;
+                        checkUserRoleAndLoadDashboard(user.uid);
+                    } else {
+                        currentUser = null;
+                        currentCompanyId = null;
+                        switchView('auth');
+                        switchAuthView('signup');
+                    }
+                });
+                handleInitialAuth();
+            }
+
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+            document.getElementById('loading-view').innerHTML = `<p class="text-red-600">Initialization Error: ${error.message}</p>`;
+        }
+    }
+
+    async function handleInitialAuth() {
+        const auth = getAuth(app);
+        try {
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Initial auth failed:", error);
+            await signInAnonymously(auth);
+        }
+    }
+    
+    // --- VIEW MANAGEMENT ---
+    
+    function switchView(view) {
+        document.getElementById('auth-view').classList.add('hidden');
+        document.getElementById('dashboard-view').classList.add('hidden');
+        
+        if (view === 'auth') {
+            document.getElementById('auth-view').classList.remove('hidden');
+        } else if (view === 'dashboard') {
+            document.getElementById('dashboard-view').classList.remove('hidden');
+        }
+    }
+    
+    function switchAuthView(formType) {
         const signupForm = document.getElementById('signup-form');
         const signinForm = document.getElementById('signin-form');
+        const tabSignup = document.getElementById('tab-signup');
+        const tabSignin = document.getElementById('tab-signin');
         
-        /** Shows the Sign In form and hides the Sign Up form with transitions. */
-        function showSignin() {
-            signupForm.classList.add('opacity-0');
-            setTimeout(() => {
-                signupForm.classList.add('hidden');
-                signinForm.classList.remove('hidden');
-                setTimeout(() => signinForm.classList.remove('opacity-0'), 10);
-            }, 300); // Wait for fade-out
-        }
-
-        /** Shows the Sign Up form and hides the Sign In form with transitions. */
-        function showSignup() {
-            signinForm.classList.add('opacity-0');
-            setTimeout(() => {
-                signinForm.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-                setTimeout(() => signupForm.classList.remove('opacity-0'), 10);
-            }, 300); // Wait for fade-out
-        }
-
-        // --- Custom Message Modal Logic (Replaces alert) ---
-        const modal = document.getElementById('message-modal');
-        const modalText = document.getElementById('modal-text');
-
-        /** Displays a custom modal message to the user. */
-        function showCustomMessage(message, title = 'Status') {
-            document.getElementById('modal-title').textContent = title;
-            modalText.textContent = message;
-            modal.classList.remove('hidden');
-        }
-
-        /** Hides the custom modal message. */
-        function hideCustomMessage() {
-            modal.classList.add('hidden');
-        }
-
-        // --- Form Submission Handlers (Mock Logic) ---
-
-        /** Handles the submission of the Sign Up form. */
-        function handleSignup(event) {
-            event.preventDefault();
+        if (formType === 'signup') {
+            signupForm.classList.remove('hidden');
+            signinForm.classList.add('hidden');
+            tabSignup.classList.add('bg-blue-500', 'text-white');
+            tabSignup.classList.remove('text-blue-600', 'hover:bg-blue-50');
+            tabSignin.classList.remove('bg-blue-500', 'text-white');
+            tabSignin.classList.add('text-blue-600', 'hover:bg-blue-50');
             
-            // In a real application, you would perform data validation and API calls here.
-            const name = document.getElementById('signup-name').value;
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const confirmPassword = document.getElementById('signup-confirm-password').value;
-            const designation = document.getElementById('signup-designation').value;
-            const country = document.getElementById('signup-country').value;
+            // Update button text for simulation clarity
+            document.getElementById('tab-signup').textContent = "Sign Up (Simulated)";
+            document.getElementById('tab-signin').textContent = "Sign In (Simulated)";
+            document.getElementById('signup-form').querySelector('h2').textContent = "Admin Sign Up (Simulation)";
+            document.getElementById('signin-form').querySelector('h2').textContent = "Sign In (Simulation)";
 
-            if (password !== confirmPassword) {
-                showCustomMessage('Error: Passwords do not match.', 'Validation Error');
+        } else {
+            signupForm.classList.add('hidden');
+            signinForm.classList.remove('hidden');
+            tabSignin.classList.add('bg-blue-500', 'text-white');
+            tabSignin.classList.remove('text-blue-600', 'hover:bg-blue-50');
+            tabSignup.classList.remove('bg-blue-500', 'text-white');
+            tabSignup.classList.add('text-blue-600', 'hover:bg-blue-50');
+        }
+        document.getElementById('auth-message-box').classList.add('hidden');
+    }
+
+    // --- AUTHENTICATION HANDLERS ---
+    
+    function displayAuthMessage(message, isError = false) {
+        const msgBox = document.getElementById('auth-message-box');
+        msgBox.textContent = message;
+        msgBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+        if (isError) {
+            msgBox.classList.add('bg-red-100', 'text-red-700');
+        } else {
+            msgBox.classList.add('bg-green-100', 'text-green-700');
+        }
+    }
+
+    async function handleSignUp(event) {
+        event.preventDefault();
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const name = document.getElementById('signup-name').value;
+        const countryCode = document.getElementById('signup-country').value;
+        
+        if (password !== confirmPassword) {
+            displayAuthMessage("Passwords do not match.", true);
+            return;
+        }
+
+        const btn = document.getElementById('signup-btn');
+        btn.disabled = true;
+        btn.textContent = 'Signing up...';
+
+        if (SIMULATION_MODE) {
+            // --- SIMULATION MODE START: Bypass Firebase Auth ---
+            
+            // 1. Prepare Simulated User Data
+            const simulatedUser = {
+                uid: SIMULATED_ADMIN_UID,
+                name: name,
+                email: email,
+                role: 'Admin',
+            };
+            
+            // Use a stable Company ID in simulation
+            const companyId = SIMULATED_ADMIN_UID + "_company"; 
+            simulatedUser.companyId = companyId;
+            const currency = currencyMap[countryCode] || 'EUR';
+
+
+            try {
+                // 2. Check if the Admin user already exists in Firestore
+                const userDocRef = doc(db, USERS_PATH, simulatedUser.uid);
+                const userSnap = await getDoc(userDocRef);
+                
+                if (!userSnap.exists()) {
+                    // Create Company document 
+                    await setDoc(doc(db, COMPANIES_PATH, companyId), {
+                        id: companyId,
+                        baseCurrency: currency,
+                        adminUid: simulatedUser.uid,
+                        createdAt: new Date().toISOString()
+                    });
+
+                    // Create Admin User document
+                    await setDoc(userDocRef, {
+                        ...simulatedUser,
+                        managerId: null,
+                        createdAt: new Date().toISOString()
+                    });
+                    displayAuthMessage("Simulated Admin account and company created successfully! Redirecting to dashboard...", false);
+                } else {
+                    displayAuthMessage("Simulated Admin user already set up. Redirecting to dashboard...", false);
+                }
+                
+                // 3. Manually set state and redirect to dashboard
+                // We use an object to simulate the structure expected by checkUserRoleAndLoadDashboard
+                currentUser = { uid: simulatedUser.uid }; 
+                checkUserRoleAndLoadDashboard(simulatedUser.uid);
+
+
+            } catch (error) {
+                console.error("Simulated Sign up failed:", error);
+                displayAuthMessage(`Simulated Sign up failed: ${error.message}.`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign Up';
+            }
+            return;
+            // --- SIMULATION MODE END ---
+        }
+
+        // --- ORIGINAL FIREBASE AUTH LOGIC ---
+        try {
+            // 1. Create Firebase Auth user
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            // 2. Determine currency and create Company document
+            const currency = currencyMap[countryCode] || 'EUR';
+            const companyId = crypto.randomUUID(); // Unique ID for the new company
+            
+            await setDoc(doc(db, COMPANIES_PATH, companyId), {
+                id: companyId,
+                baseCurrency: currency,
+                adminUid: user.uid,
+                createdAt: new Date().toISOString()
+            });
+
+            // 3. Create Admin User document in Firestore
+            await setDoc(doc(db, USERS_PATH, user.uid), {
+                uid: user.uid,
+                name: name,
+                email: email,
+                role: 'Admin',
+                companyId: companyId,
+                managerId: null, // Admin has no manager
+                createdAt: new Date().toISOString()
+            });
+            
+            displayAuthMessage("Admin account and company created successfully! Redirecting to dashboard...", false);
+            // onAuthStateChanged will handle the redirect
+
+        } catch (error) {
+            console.error("Sign up failed:", error);
+            let errorMessage = "Sign up failed. Please try again.";
+            
+            if (error.code === 'auth/operation-not-allowed') {
+                 errorMessage = "CRITICAL ERROR: Firebase Email/Password Sign-in is DISABLED. Please enable it in your Firebase project console under Authentication > Sign-in method tab.";
+            } else if (error.code === 'auth/email-already-in-use') {
+                errorMessage = "This email is already in use. Try signing in.";
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = "Password should be at least 6 characters.";
+            }
+            displayAuthMessage(errorMessage, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Sign Up';
+        }
+    }
+
+    async function handleSignIn(event) {
+        event.preventDefault();
+        const email = document.getElementById('signin-email').value;
+        const password = document.getElementById('signin-password').value;
+        
+        const btn = document.getElementById('signin-btn');
+        btn.disabled = true;
+        btn.textContent = 'Logging in...';
+        
+        if (SIMULATION_MODE) {
+             // --- SIMULATION MODE START: Bypass Firebase Auth ---
+            const simulatedUid = SIMULATED_ADMIN_UID;
+            
+            try {
+                const userDocRef = doc(db, USERS_PATH, simulatedUid);
+                const userSnap = await getDoc(userDocRef);
+
+                if (userSnap.exists() && userSnap.data().role === 'Admin') {
+                    // User found, simulate login success
+                    currentUser = { uid: simulatedUid };
+                    checkUserRoleAndLoadDashboard(simulatedUid);
+                    displayAuthMessage("Simulated Login successful! Redirecting to dashboard...", false);
+                } else {
+                    // User not found (Admin must sign up first in this simulation)
+                    displayAuthMessage("Admin user record not found. Please use the 'Sign Up (Simulated)' tab first.", true);
+                }
+            } catch (error) {
+                console.error("Simulated Sign in failed:", error);
+                displayAuthMessage(`Simulated Sign in failed: ${error.message}.`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+            return;
+             // --- SIMULATION MODE END ---
+        }
+
+        // --- ORIGINAL FIREBASE AUTH LOGIC ---
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            displayAuthMessage("Login successful! Redirecting to dashboard...", false);
+            // onAuthStateChanged will handle the redirect
+        } catch (error) {
+            console.error("Sign in failed:", error);
+            let errorMessage = "Invalid email or password.";
+            
+            if (error.code === 'auth/operation-not-allowed') {
+                 errorMessage = "CRITICAL ERROR: Firebase Email/Password Sign-in is DISABLED. Please enable it in your Firebase project console under Authentication > Sign-in method tab.";
+            }
+
+            displayAuthMessage(errorMessage, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Login';
+        }
+    }
+
+    function handleSignOut() {
+        if (SIMULATION_MODE) {
+            // In simulation mode, clear state and show auth view
+            currentUser = null;
+            currentCompanyId = null;
+            switchView('auth');
+            switchAuthView('signin');
+        } else {
+            // Original Firebase sign out
+            signOut(auth).catch((error) => {
+                console.error("Error signing out:", error);
+            });
+        }
+    }
+    
+    // --- DASHBOARD AND USER MANAGEMENT LOGIC ---
+    
+    // 1. Initial Dashboard Load (checks user role and company)
+    async function checkUserRoleAndLoadDashboard(uid) {
+        try {
+            const userDocRef = doc(db, USERS_PATH, uid);
+            const userSnap = await getDoc(userDocRef);
+
+            if (!userSnap.exists()) {
+                // User signed in but no user record in Firestore (e.g., anonymous or old test user)
+                console.warn("User record not found in Firestore. Signing out.");
+                // Only sign out if not in simulation mode, otherwise the sign-in flow handles reset
+                if (!SIMULATION_MODE) handleSignOut(); 
                 return;
             }
 
-            // Simulate successful registration
-            const message = `Sign Up successful for Admin: ${name} (${email}). 
-                            Designation: ${designation}. 
-                            Country Base Currency set (via ${country}). 
-                            Now routing to Sign In...`;
-            showCustomMessage(message, 'Success!');
+            const userData = userSnap.data();
+            currentCompanyId = userData.companyId;
+            
+            if (userData.role !== 'Admin') {
+                // For a full app, this would be an Employee/Manager view. For this request, we only show Admin view.
+                switchView('dashboard'); 
+                document.getElementById('dashboard-view').innerHTML = `<div class="text-center p-10"><h1 class="text-2xl font-bold text-red-600">Access Denied</h1><p>Only Admin users can access this dashboard.</p><button onclick="handleSignOut()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg">Sign Out</button></div>`;
+                return;
+            }
+            
+            // Get company currency for display
+            const companyDocRef = doc(db, COMPANIES_PATH, currentCompanyId);
+            const companySnap = await getDoc(companyDocRef);
+            if (companySnap.exists()) {
+                companyBaseCurrency = companySnap.data().baseCurrency;
+            }
 
-            // Clear form fields
-            event.target.reset();
+            document.getElementById('company-info').textContent = `User: ${userData.name} (Admin) | Company ID: ${currentCompanyId} | Base Currency: ${companyBaseCurrency}`;
+            
+            switchView('dashboard');
+            // Start listening to real-time user updates
+            listenForCompanyUsers();
 
-            // Automatically switch to Sign In after a delay
-            setTimeout(showSignin, 2000);
+        } catch (error) {
+            console.error("Error checking user role and loading dashboard:", error);
+            handleSignOut();
+        }
+    }
+    
+    // 2. Real-time Listener for Company Users
+    function listenForCompanyUsers() {
+        if (!db || !currentCompanyId) return;
+
+        const usersQuery = query(collection(db, USERS_PATH), where("companyId", "==", currentCompanyId));
+        
+        onSnapshot(usersQuery, (snapshot) => {
+            companyUsers = [];
+            snapshot.forEach((doc) => {
+                const user = doc.data();
+                // Exclude the Admin from the management list
+                if (user.role !== 'Admin') {
+                    companyUsers.push(user);
+                }
+            });
+            renderUsersTable();
+        }, (error) => {
+            console.error("Error listening to company users:", error);
+        });
+    }
+
+    // 3. Render the Users Table
+    function renderUsersTable() {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = '';
+        
+        if (companyUsers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No employees or managers have been added yet.</td></tr>`;
+            return;
         }
 
-        /** Handles the submission of the Sign In form. */
-        function handleSignin(event) {
-            event.preventDefault();
+        const managers = companyUsers.filter(u => u.role === 'Manager');
+
+        companyUsers.forEach(user => {
+            const isManager = user.role === 'Manager';
             
-            // In a real application, you would send credentials to an authentication service here.
-            const email = document.getElementById('signin-email').value;
-            const designation = document.getElementById('signin-designation').value;
-            
-            // Simulate successful login
-            const message = `Login successful for ${designation}: ${email}. Welcome to the dashboard!`;
-            showCustomMessage(message, 'Welcome Back');
-            
-            // Clear form fields
-            event.target.reset();
+            // Role Select Dropdown
+            const roleSelect = `
+                <select onchange="updateUserRole('${user.uid}', this.value)" 
+                    class="p-2 border rounded-lg bg-white w-full text-sm">
+                    <option value="Employee" ${user.role === 'Employee' ? 'selected' : ''}>Employee</option>
+                    <option value="Manager" ${user.role === 'Manager' ? 'selected' : ''}>Manager</option>
+                </select>
+            `;
+
+            // Manager Select Dropdown (Only for Employees)
+            let managerSelect = '';
+            if (!isManager) {
+                managerSelect = `
+                    <select onchange="updateManagerRelationship('${user.uid}', this.value)" 
+                        class="p-2 border rounded-lg bg-white w-full text-sm">
+                        <option value="" ${!user.managerId ? 'selected' : ''}>-- No Manager --</option>
+                        ${managers.map(manager => `
+                            <option value="${manager.uid}" ${user.managerId === manager.uid ? 'selected' : ''}>
+                                ${manager.name}
+                            </option>
+                        `).join('')}
+                    </select>
+                `;
+            } else {
+                managerSelect = `<span class="text-gray-500 italic">N/A</span>`;
+            }
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-100';
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                    <div class="text-sm text-gray-500">${user.email}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">${roleSelect}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${managerSelect}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <button onclick="simulatePasswordSend('${user.email}')" 
+                        class="bg-yellow-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors duration-200">
+                        Send Password
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    // 4. Update Role Logic
+    window.updateUserRole = async function(uid, newRole) {
+        if (!db) return;
+        const userRef = doc(db, USERS_PATH, uid);
+        
+        try {
+            await updateDoc(userRef, { 
+                role: newRole,
+                // If the user becomes an Employee, clear their manager assignment.
+                managerId: newRole === 'Manager' ? null : companyUsers.find(u => u.uid === uid)?.managerId || null
+            });
+            console.log(`User ${uid} role updated to ${newRole}`);
+        } catch (error) {
+            console.error("Error updating user role:", error);
         }
-    </script>
+    }
+    
+    // 5. Update Manager Relationship Logic
+    window.updateManagerRelationship = async function(uid, managerUid) {
+        if (!db) return;
+        const userRef = doc(db, USERS_PATH, uid);
+        
+        try {
+            // managerUid is either a UID string or an empty string from the select.
+            await updateDoc(userRef, { managerId: managerUid || null });
+            console.log(`User ${uid} manager relationship updated to ${managerUid || 'none'}`);
+        } catch (error) {
+            console.error("Error updating manager relationship:", error);
+        }
+    }
+    
+    // 6. Create New User Logic
+    async function handleCreateUser(event) {
+        event.preventDefault();
+        const name = document.getElementById('new-user-name').value;
+        const email = document.getElementById('new-user-email').value;
+        const role = document.getElementById('new-user-role').value;
+        const msgElement = document.getElementById('user-creation-message');
+        const btn = document.getElementById('create-user-btn');
+
+        msgElement.classList.add('hidden');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+
+        try {
+            // We use a query to check if the user already exists in *our* USERS collection by email.
+            const q = query(collection(db, USERS_PATH), where("email", "==", email), where("companyId", "==", currentCompanyId));
+            const existingUsers = await getDocs(q);
+
+            if (!existingUsers.empty) {
+                // User already exists in this company
+                msgElement.textContent = `User with email ${email} already exists in your company.`;
+                msgElement.classList.remove('hidden');
+                msgElement.classList.add('text-red-600');
+                return;
+            }
+
+            // SIMULATION: Create a placeholder user without Firebase Auth credentials first.
+            // In a real app, this user would receive an invitation email to set their password.
+            const tempUid = 'temp_' + crypto.randomUUID(); // Placeholder UID
+            
+            await setDoc(doc(db, USERS_PATH, tempUid), {
+                uid: tempUid,
+                name: name,
+                email: email,
+                role: role,
+                companyId: currentCompanyId,
+                managerId: null,
+                isPlaceholder: true, // Marker for users not yet registered via Auth
+                createdAt: new Date().toISOString()
+            });
+
+            msgElement.textContent = `User ${name} (${role}) added successfully. An invitation should be sent (simulated).`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.remove('text-red-600');
+            msgElement.classList.add('text-green-600');
+
+            // Clear form
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-email').value = '';
+
+        } catch (error) {
+            console.error("Error creating user:", error);
+            msgElement.textContent = `Failed to create user: ${error.message}`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-600');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Add User';
+            setTimeout(() => msgElement.classList.add('hidden'), 5000);
+        }
+    }
+
+    // 7. Password Reset/Send Password Simulation
+    window.simulatePasswordSend = function(email) {
+        // As per the requirement, "Clicking on this button should send a randomly generated unique password in mail of that user"
+        // Since we cannot send actual emails in this environment, we simulate the action and prompt the admin to use the standard reset flow.
+        const msg = `
+            [SIMULATION]: Password send requested for ${email}. 
+            In the live application, this would email a temporary password.
+        `;
+        alert(msg);
+    }
+    
+    // 8. Forgot Password / Reset Modal
+    window.showPasswordResetModal = function() {
+        document.getElementById('reset-modal').classList.remove('hidden');
+        document.getElementById('reset-modal').classList.add('flex');
+        document.getElementById('reset-message').textContent = '';
+    }
+
+    window.hidePasswordResetModal = function() {
+        document.getElementById('reset-modal').classList.add('hidden');
+        document.getElementById('reset-modal').classList.remove('flex');
+    }
+
+    window.handlePasswordReset = async function() {
+        const email = document.getElementById('reset-email').value;
+        const msgElement = document.getElementById('reset-message');
+
+        if (SIMULATION_MODE) {
+            msgElement.textContent = "[SIMULATION] Password reset is not available. Use the 'Sign In (Simulated)' tab.";
+            msgElement.className = 'mt-3 text-sm text-red-600';
+            return;
+        }
+
+        msgElement.textContent = 'Sending reset link...';
+        msgElement.className = 'mt-3 text-sm text-gray-500';
+
+        if (!email) {
+            msgElement.textContent = 'Please enter an email address.';
+            msgElement.className = 'mt-3 text-sm text-red-600';
+            return;
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            msgElement.textContent = `Password reset link sent to ${email}. Check your inbox.`;
+            msgElement.className = 'mt-3 text-sm text-green-600';
+            document.getElementById('reset-email').value = '';
+        } catch (error) {
+            console.error("Password reset failed:", error);
+            msgElement.textContent = `Error sending reset link. Please check the email address.`;
+            msgElement.className = 'mt-3 text-sm text-red-600';
+        }
+    }
+
+    // Expose module functions to the global scope for HTML inline handlers
+    // These functions were local to the module scope and needed to be attached to window 
+    // to work with inline onclick/onsubmit attributes.
+    window.switchAuthView = switchAuthView;
+    window.handleSignUp = handleSignUp;
+    window.handleSignIn = handleSignIn;
+    window.handleSignOut = handleSignOut;
+    window.handleCreateUser = handleCreateUser;
+    window.switchView = switchView;
+
+
+    // Start the application on window load
+    window.onload = initializeAppServices;
+
+</script>
+
 </body>
 </html>
