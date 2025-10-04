@@ -51,5 +51,5 @@ This project demonstrates a multi-role environment with *Admin, **Manager, and *
 | Fonts | *Google Fonts – Inter* |
 | Auth & Database (Simulated) | *Firebase Auth* & *Firestore (Mock)* |
 | State Management | Vanilla JS Objects & Local State |
-| Simulation Mode | SIMULATION_MODE = true |
+
 
