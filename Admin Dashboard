@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Auth & Management</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f7fa; }
+        .card { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .main-container { min-height: 100vh; }
+        /* Simple focus style */
+        input:focus, select:focus, button:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
+        .required-label::after { content: '*'; color: #ef4444; margin-left: 2px; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="main-container flex items-center justify-center p-4">
+    <div id="loading-view" class="flex flex-col items-center justify-center p-8 text-lg font-semibold text-gray-700">
+        <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Loading application...
+    </div>
+
+    <!-- Auth View Container -->
+    <div id="auth-view" class="hidden w-full max-w-lg">
+        <div id="auth-message-box" class="hidden p-3 mb-4 rounded-lg text-sm" role="alert"></div>
+
+        <!-- Tab Controls -->
+        <div class="flex mb-6 bg-white p-1 rounded-xl card shadow-sm">
+            <button id="tab-signup" onclick="switchAuthView('signup')" class="w-1/2 py-2 text-center rounded-xl font-semibold transition-colors duration-200">Sign Up (Simulated)</button>
+            <button id="tab-signin" onclick="switchAuthView('signin')" class="w-1/2 py-2 text-center rounded-xl font-semibold transition-colors duration-200">Sign In (Simulated)</button>
+        </div>
+
+        <!-- Sign Up Form (Admin) -->
+        <div id="signup-form" class="bg-white p-8 rounded-xl card transition-all duration-300">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Admin Sign Up (Simulation)</h2>
+            <form onsubmit="handleSignUp(event)">
+                <div class="mb-4">
+                    <label for="signup-name" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" id="signup-name" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signup-email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signup-password" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" required minlength="6" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="signup-country" class="block text-sm font-medium text-gray-700 mb-1">Country (Sets Company Base Currency)</label>
+                    <select id="signup-country" required class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500">
+                        <option value="" disabled selected>Select a country</option>
+                        <option value="US">United States (USD)</option>
+                        <option value="GB">United Kingdom (GBP)</option>
+                        <option value="JP">Japan (JPY)</option>
+                        <option value="IN">India (INR)</option>
+                        <option value="FR">France (EUR)</option>
+                        <option value="DE">Germany (EUR)</option>
+                        <option value="BR">Brazil (BRL)</option>
+                        <option value="AU">Australia (AUD)</option>
+                    </select>
+                </div>
+                <button type="submit" id="signup-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    Sign Up
+                </button>
+            </form>
+        </div>
+
+        <!-- Sign In Form -->
+        <div id="signin-form" class="bg-white p-8 rounded-xl card hidden transition-all duration-300">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800">Sign In (Simulation)</h2>
+            <form onsubmit="handleSignIn(event)">
+                <div class="mb-4">
+                    <label for="signin-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    <input type="email" id="signin-email" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-6">
+                    <label for="signin-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="signin-password" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" id="signin-btn" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 mb-4">
+                    Login
+                </button>
+            </form>
+            <p class="text-center text-sm text-gray-600">
+                <a href="#" onclick="showPasswordResetModal()" class="text-blue-600 hover:text-blue-800 font-medium">Forgot password? (Not available in simulation)</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard View Container -->
+    <div id="dashboard-view" class="hidden w-full max-w-7xl mx-auto p-4 md:p-8">
+        <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <div class="text-gray-800">
+                <h1 class="text-3xl font-extrabold flex items-center">
+                    <svg class="w-8 h-8 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20v-2c0-.57-.101-1.117-.29-1.625M21 17.5V20m-4-7a4 4 0 11-8 0 4 4 0 018 0zM12 14v1a3 3 0 00-3 3h6a3 3 0 00-3-3v-1M4 5h16M4 8h16M4 11h16M4 14h16M4 17h16"></path></svg>
+                    Company Admin Dashboard
+                </h1>
+                <p id="company-info" class="text-sm text-gray-500 mt-1"></p>
+            </div>
+            <button onclick="handleSignOut()" class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-600 transition-colors duration-200 flex items-center">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V7m-4-2h12a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V7a2 2 0 012-2z"></path></svg>
+                Sign Out
+            </button>
+        </div>
+        
+        <!-- Tabs for Admin Features -->
+        <div class="flex mb-6 space-x-4">
+            <button onclick="switchAdminTab('users')" id="tab-users" class="px-4 py-2 rounded-lg font-semibold bg-blue-600 text-white transition-colors duration-200">User Management</button>
+            <button onclick="switchAdminTab('approvals')" id="tab-approvals" class="px-4 py-2 rounded-lg font-semibold text-gray-700 bg-white hover:bg-gray-100 transition-colors duration-200">Approval Rules</button>
+        </div>
+
+        <!-- Tab Content -->
+        
+        <!-- User Management View -->
+        <div id="admin-tab-users">
+            <!-- Add New Employee/Manager Section -->
+            <div class="bg-white p-6 rounded-xl card mb-8">
+                <h3 class="text-xl font-bold mb-4 text-gray-700">Add New Company User</h3>
+                <form onsubmit="handleCreateUser(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                    <div class="md:col-span-1">
+                        <label for="new-user-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                        <input type="text" id="new-user-name" placeholder="John Doe" required class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="new-user-email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" id="new-user-email" placeholder="john@company.com" required class="w-full p-3 border border-gray-300 rounded-lg">
+                    </div>
+                    <div class="md:col-span-1">
+                        <label for="new-user-role" class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                        <select id="new-user-role" required class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                            <option value="Employee">Employee</option>
+                            <option value="Manager">Manager</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-1">
+                        <button type="submit" id="create-user-btn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                            Add User
+                        </button>
+                    </div>
+                </form>
+                <p id="user-creation-message" class="mt-3 text-sm hidden"></p>
+            </div>
+
+            <!-- Users Table Section -->
+            <div class="bg-white p-6 rounded-xl card overflow-x-auto">
+                <h3 class="text-xl font-bold mb-4 text-gray-700">Company Users</h3>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Name / Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Manager</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- User rows will be inserted here by JavaScript -->
+                        <tr><td colspan="4" class="text-center py-4 text-gray-500">No employees or managers have been added yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Approval Rules View -->
+        <div id="admin-tab-approvals" class="hidden">
+            <div class="bg-white p-6 rounded-xl card mb-8">
+                <h3 class="text-xl font-bold mb-6 text-gray-700">Define New Approval Rule (Admin View)</h3>
+                <form onsubmit="handleSaveApprovalRule(event)" id="approval-rule-form">
+                    
+                    <!-- Rule Applies To / Description -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 border-b pb-6">
+                        <!-- Left side: User/Manager Definition -->
+                        <div>
+                            <div class="mb-4">
+                                <label for="rule-user" class="block text-sm font-medium text-gray-700 mb-1 required-label">User</label>
+                                <select id="rule-user" required class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                                    <option value="" disabled selected>Select user for this rule</option>
+                                    <option value="All">All Users (Global Rule)</option>
+                                    <!-- Dynamic user options populated here by JS -->
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="rule-manager" class="block text-sm font-medium text-gray-700 mb-1">Manager</label>
+                                <select id="rule-manager" class="w-full p-3 border border-gray-300 rounded-lg bg-white">
+                                    <option value="" selected>Initially set on user record</option>
+                                    <!-- Dynamic manager options populated here by JS -->
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Initially the manager set on user record should be set, admin can change manager for approval if required.</p>
+                            </div>
+                            <div class="mb-4">
+                                <label for="rule-description" class="block text-sm font-medium text-gray-700 mb-1 required-label">Description about rules</label>
+                                <input type="text" id="rule-description" required class="w-full p-3 border border-gray-300 rounded-lg" placeholder="Approval rule for miscellaneous expenses">
+                            </div>
+                        </div>
+
+                        <!-- Right side: Manager Approver Check -->
+                        <div class="p-4 border border-blue-200 rounded-xl bg-blue-50 self-start">
+                            <label class="flex items-center text-sm font-medium text-gray-700">
+                                <input type="checkbox" id="is-manager-approver" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2" onchange="renderApproversList()">
+                                Is manager an approver?
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 pl-6">If this field is checked then by default the approve request would go to his/her manager first, before going to other approvers.</p>
+                        </div>
+                    </div>
+                    
+
+                    <!-- Approvers List -->
+                    <h4 class="text-lg font-bold mb-3 text-gray-700">Approvers</h4>
+                    <div class="mb-4 border-b pb-6">
+                        <div class="flex justify-between items-center mb-2 text-sm font-medium text-gray-700">
+                            <span class="w-1/3">User</span>
+                            <span class="w-1/5 text-center">Required</span>
+                            <span class="w-1/3 text-center text-gray-500 text-xs italic">Description</span>
+                            <span class="w-1/12"></span>
+                        </div>
+                        <div id="approvers-list" class="space-y-2">
+                            <!-- Dynamic approver fields inserted here -->
+                        </div>
+                        <button type="button" onclick="addApprover()" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            Add Approver
+                        </button>
+                    </div>
+                    
+                    <!-- Sequence and Minimum Approval -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                        <div class="p-4 border border-green-200 rounded-xl bg-green-50 self-start">
+                            <label class="flex items-center text-sm font-medium text-gray-700">
+                                <input type="checkbox" id="approvers-sequence-required" class="h-4 w-4 text-green-600 border-gray-300 rounded mr-2">
+                                Approvers Sequence
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 pl-6">If this field is ticked true then the above mentioned sequence of approvers matters, that is first the request goes to John, if he approves/rejects then only request goes to Mitchell and so on. If the required approver rejects the request, then expense request is auto-rejected. If not ticked then send approver request to all approvers at the same time.</p>
+                        </div>
+                        <div>
+                            <label for="min-approval-percentage" class="block text-sm font-medium text-gray-700 mb-1">Minimum Approval percentage (%)</label>
+                            <input type="number" id="min-approval-percentage" min="0" max="100" value="100" required class="w-full p-3 border border-gray-300 rounded-lg">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="save-rule-btn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-200 mt-6">
+                        Save Approval Rule
+                    </button>
+                    <p id="rule-save-message" class="mt-3 text-sm hidden"></p>
+                </form>
+            </div>
+            
+            <div class="bg-white p-6 rounded-xl card overflow-x-auto">
+                <h3 class="text-xl font-bold mb-4 text-gray-700">Existing Approval Rules</h3>
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">Description</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">Applies To</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Approvers</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rules-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Rules will be loaded here -->
+                        <tr><td colspan="4" class="text-center py-4 text-gray-500">No approval rules defined yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Global Message/Modal for Password Reset -->
+    <div id="reset-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-xl card max-w-sm w-full">
+            <h3 class="text-lg font-bold mb-4">Forgot Password</h3>
+            <p class="text-sm text-gray-600 mb-4">Enter your email address. We will send a simulated temporary password.</p>
+            <input type="email" id="reset-email" placeholder="Email" class="w-full p-3 border border-gray-300 rounded-lg mb-4">
+            <button onclick="handlePasswordReset()" class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Send Reset Link</button>
+            <button onclick="hidePasswordResetModal()" class="w-full mt-2 text-gray-600 py-2">Cancel</button>
+            <p id="reset-message" class="mt-3 text-sm"></p>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    // Firebase Imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+        getAuth, 
+        signInAnonymously, 
+        signInWithCustomToken, 
+        onAuthStateChanged, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        signOut, 
+        sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+        getFirestore, 
+        doc, 
+        setDoc, 
+        updateDoc, 
+        onSnapshot, 
+        collection, 
+        query, 
+        where, 
+        getDocs, 
+        getDoc,
+        setLogLevel,
+        deleteDoc,
+        addDoc
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // --- GLOBAL STATE & FIREBASE SETUP ---
+    let app, auth, db;
+    let currentUser = null;
+    let currentCompanyId = null;
+    let companyBaseCurrency = 'USD';
+    let companyUsers = [];
+    let currentApprovers = []; // Stores the list of approvers for the current form
+    
+    // START SIMULATION MODE: Set to TRUE to bypass Firebase Auth and immediately access the Admin Dashboard.
+    const SIMULATION_MODE = true; 
+    const SIMULATED_ADMIN_UID = "sim_admin_12345"; 
+
+
+    // Global variables from Canvas Environment
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+    // Currency mapping based on country selection
+    const currencyMap = {
+        'US': 'USD', 'GB': 'GBP', 'JP': 'JPY', 'IN': 'INR', 'FR': 'EUR', 'DE': 'EUR', 'BR': 'BRL', 'AU': 'AUD'
+    };
+
+    // Firestore Path Constants
+    const COMPANIES_PATH = `/artifacts/${appId}/public/data/companies`;
+    const USERS_PATH = `/artifacts/${appId}/public/data/users`;
+    const RULES_PATH = `/artifacts/${appId}/public/data/approval_rules`; // New collection for rules
+
+    // Initialize Firebase
+    function initializeAppServices() {
+        try {
+            if (Object.keys(firebaseConfig).length === 0) {
+                console.error("Firebase config is missing. Cannot initialize Firebase.");
+                document.getElementById('loading-view').innerHTML = '<p class="text-red-600">Error: Firebase configuration is missing.</p>';
+                return;
+            }
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            setLogLevel('debug');
+            
+            // Wait for initial auth to finish (anonymous sign-in)
+            handleInitialAuth().finally(() => {
+                // HIDE LOADING SCREEN after authentication attempt is complete
+                document.getElementById('loading-view').classList.add('hidden'); 
+                
+                if (SIMULATION_MODE) {
+                    // In simulation, we immediately show the auth view and wait for user action
+                    switchView('auth');
+                    switchAuthView('signup');
+                } else {
+                // --- ORIGINAL FIREBASE AUTH INITIALIZATION ---
+                    // Listen for the final auth state to determine dashboard access
+                    onAuthStateChanged(auth, (user) => {
+                        
+                        if (user) {
+                            currentUser = user;
+                            checkUserRoleAndLoadDashboard(user.uid);
+                        } else {
+                            currentUser = null;
+                            currentCompanyId = null;
+                            switchView('auth');
+                            switchAuthView('signup');
+                        }
+                    });
+                    // Note: handleInitialAuth already ran, so onAuthStateChanged will fire quickly if successful.
+                }
+            });
+
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+            document.getElementById('loading-view').innerHTML = `<p class="text-red-600">Initialization Error: ${error.message}</p>`;
+        }
+    }
+
+    async function handleInitialAuth() {
+        const auth = getAuth(app);
+        try {
+            if (initialAuthToken) {
+                await signInWithCustomToken(auth, initialAuthToken);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (error) {
+            console.error("Initial auth failed:", error);
+            await signInAnonymously(auth);
+        }
+    }
+    
+    // --- VIEW MANAGEMENT ---
+    
+    function switchView(view) {
+        document.getElementById('auth-view').classList.add('hidden');
+        document.getElementById('dashboard-view').classList.add('hidden');
+        
+        if (view === 'auth') {
+            document.getElementById('auth-view').classList.remove('hidden');
+        } else if (view === 'dashboard') {
+            document.getElementById('dashboard-view').classList.remove('hidden');
+        }
+    }
+    
+    function switchAuthView(formType) {
+        const signupForm = document.getElementById('signup-form');
+        const signinForm = document.getElementById('signin-form');
+        const tabSignup = document.getElementById('tab-signup');
+        const tabSignin = document.getElementById('tab-signin');
+        
+        if (formType === 'signup') {
+            signupForm.classList.remove('hidden');
+            signinForm.classList.add('hidden');
+            tabSignup.classList.add('bg-blue-500', 'text-white');
+            tabSignup.classList.remove('text-blue-600', 'hover:bg-blue-50');
+            tabSignin.classList.remove('bg-blue-500', 'text-white');
+            tabSignin.classList.add('text-blue-600', 'hover:bg-blue-50');
+            
+            // Update button text for simulation clarity
+            document.getElementById('tab-signup').textContent = "Sign Up (Simulated)";
+            document.getElementById('tab-signin').textContent = "Sign In (Simulated)";
+            document.getElementById('signup-form').querySelector('h2').textContent = "Admin Sign Up (Simulation)";
+            document.getElementById('signin-form').querySelector('h2').textContent = "Sign In (Simulation)";
+
+        } else {
+            signupForm.classList.add('hidden');
+            signinForm.classList.remove('hidden');
+            tabSignin.classList.add('bg-blue-500', 'text-white');
+            tabSignin.classList.remove('text-blue-600', 'hover:bg-blue-50');
+            tabSignup.classList.remove('bg-blue-500', 'text-white');
+            tabSignup.classList.add('text-blue-600', 'hover:bg-blue-50');
+        }
+        document.getElementById('auth-message-box').classList.add('hidden');
+    }
+    
+    window.switchAdminTab = function(tabName) {
+        document.getElementById('admin-tab-users').classList.add('hidden');
+        document.getElementById('admin-tab-approvals').classList.add('hidden');
+        document.getElementById('tab-users').classList.remove('bg-blue-600', 'text-white', 'bg-white', 'text-gray-700');
+        document.getElementById('tab-approvals').classList.remove('bg-blue-600', 'text-white', 'bg-white', 'text-gray-700');
+
+        if (tabName === 'users') {
+            document.getElementById('admin-tab-users').classList.remove('hidden');
+            document.getElementById('tab-users').classList.add('bg-blue-600', 'text-white');
+            document.getElementById('tab-approvals').classList.add('bg-white', 'text-gray-700');
+        } else if (tabName === 'approvals') {
+            document.getElementById('admin-tab-approvals').classList.remove('hidden');
+            document.getElementById('tab-approvals').classList.add('bg-blue-600', 'text-white');
+            document.getElementById('tab-users').classList.add('bg-white', 'text-gray-700');
+            // Load necessary data and render the form when switching to the approvals tab
+            populateApprovalRuleDropdowns(); 
+            renderApproversList(); 
+            listenForApprovalRules();
+        }
+    }
+
+
+    // --- AUTHENTICATION HANDLERS ---
+    
+    function displayAuthMessage(message, isError = false) {
+        const msgBox = document.getElementById('auth-message-box');
+        msgBox.textContent = message;
+        msgBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+        if (isError) {
+            msgBox.classList.add('bg-red-100', 'text-red-700');
+        } else {
+            msgBox.classList.add('bg-green-100', 'text-green-700');
+        }
+    }
+
+    async function handleSignUp(event) {
+        event.preventDefault();
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        const confirmPassword = document.getElementById('signup-confirm-password').value;
+        const name = document.getElementById('signup-name').value;
+        const countryCode = document.getElementById('signup-country').value;
+        
+        if (password !== confirmPassword) {
+            displayAuthMessage("Passwords do not match.", true);
+            return;
+        }
+
+        const btn = document.getElementById('signup-btn');
+        btn.disabled = true;
+        btn.textContent = 'Signing up...';
+
+        if (SIMULATION_MODE) {
+            // --- SIMULATION MODE START: Bypass Firebase Auth ---
+            
+            const simulatedUser = {
+                uid: SIMULATED_ADMIN_UID,
+                name: name,
+                email: email,
+                role: 'Admin',
+            };
+            
+            const companyId = SIMULATED_ADMIN_UID + "_company"; 
+            simulatedUser.companyId = companyId;
+            const currency = currencyMap[countryCode] || 'EUR';
+
+
+            try {
+                const userDocRef = doc(db, USERS_PATH, simulatedUser.uid);
+                const userSnap = await getDoc(userDocRef);
+                
+                if (!userSnap.exists()) {
+                    await setDoc(doc(db, COMPANIES_PATH, companyId), {
+                        id: companyId,
+                        baseCurrency: currency,
+                        adminUid: simulatedUser.uid,
+                        createdAt: new Date().toISOString()
+                    });
+
+                    await setDoc(userDocRef, {
+                        ...simulatedUser,
+                        managerId: null,
+                        createdAt: new Date().toISOString()
+                    });
+                    displayAuthMessage("Simulated Admin account and company created successfully! Redirecting to dashboard...", false);
+                } else {
+                    displayAuthMessage("Simulated Admin user already set up. Redirecting to dashboard...", false);
+                }
+                
+                currentUser = { uid: simulatedUser.uid }; 
+                checkUserRoleAndLoadDashboard(simulatedUser.uid);
+
+
+            } catch (error) {
+                console.error("Simulated Sign up failed:", error);
+                displayAuthMessage(`Simulated Sign up failed: ${error.message}.`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign Up';
+            }
+            return;
+            // --- SIMULATION MODE END ---
+        }
+
+        // --- ORIGINAL FIREBASE AUTH LOGIC ---
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            const currency = currencyMap[countryCode] || 'EUR';
+            const companyId = crypto.randomUUID(); 
+            
+            await setDoc(doc(db, COMPANIES_PATH, companyId), {
+                id: companyId,
+                baseCurrency: currency,
+                adminUid: user.uid,
+                createdAt: new Date().toISOString()
+            });
+
+            await setDoc(doc(db, USERS_PATH, user.uid), {
+                uid: user.uid,
+                name: name,
+                email: email,
+                role: 'Admin',
+                companyId: companyId,
+                managerId: null, 
+                createdAt: new Date().toISOString()
+            });
+            
+            displayAuthMessage("Admin account and company created successfully! Redirecting to dashboard...", false);
+
+        } catch (error) {
+            console.error("Sign up failed:", error);
+            let errorMessage = "Sign up failed. Please try again.";
+            
+            if (error.code === 'auth/operation-not-allowed') {
+                 errorMessage = "CRITICAL ERROR: Firebase Email/Password Sign-in is DISABLED. Please enable it in your Firebase project console under Authentication > Sign-in method tab.";
+            } else if (error.code === 'auth/email-already-in-use') {
+                errorMessage = "This email is already in use. Try signing in.";
+            } else if (error.code === 'auth/weak-password') {
+                errorMessage = "Password should be at least 6 characters.";
+            }
+            displayAuthMessage(errorMessage, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Sign Up';
+        }
+    }
+
+    async function handleSignIn(event) {
+        event.preventDefault();
+        const email = document.getElementById('signin-email').value;
+        const password = document.getElementById('signin-password').value;
+        
+        const btn = document.getElementById('signin-btn');
+        btn.disabled = true;
+        btn.textContent = 'Logging in...';
+        
+        if (SIMULATION_MODE) {
+             // --- SIMULATION MODE START: Bypass Firebase Auth ---
+            const simulatedUid = SIMULATED_ADMIN_UID;
+            
+            try {
+                const userDocRef = doc(db, USERS_PATH, simulatedUid);
+                const userSnap = await getDoc(userDocRef);
+
+                if (userSnap.exists() && userSnap.data().role === 'Admin') {
+                    currentUser = { uid: simulatedUid };
+                    checkUserRoleAndLoadDashboard(simulatedUid);
+                    displayAuthMessage("Simulated Login successful! Redirecting to dashboard...", false);
+                } else {
+                    displayAuthMessage("Admin user record not found. Please use the 'Sign Up (Simulated)' tab first.", true);
+                }
+            } catch (error) {
+                console.error("Simulated Sign in failed:", error);
+                displayAuthMessage(`Simulated Sign in failed: ${error.message}.`, true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+            return;
+             // --- SIMULATION MODE END ---
+        }
+
+        // --- ORIGINAL FIREBASE AUTH LOGIC ---
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            displayAuthMessage("Login successful! Redirecting to dashboard...", false);
+        } catch (error) {
+            console.error("Sign in failed:", error);
+            let errorMessage = "Invalid email or password.";
+            
+            if (error.code === 'auth/operation-not-allowed') {
+                 errorMessage = "CRITICAL ERROR: Firebase Email/Password Sign-in is DISABLED. Please enable it in your Firebase project console under Authentication > Sign-in method tab.";
+            }
+
+            displayAuthMessage(errorMessage, true);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Login';
+        }
+    }
+
+    function handleSignOut() {
+        if (SIMULATION_MODE) {
+            currentUser = null;
+            currentCompanyId = null;
+            switchView('auth');
+            switchAuthView('signin');
+        } else {
+            signOut(auth).catch((error) => {
+                console.error("Error signing out:", error);
+            });
+        }
+    }
+    
+    // --- DASHBOARD AND USER MANAGEMENT LOGIC ---
+    
+    async function checkUserRoleAndLoadDashboard(uid) {
+        try {
+            const userDocRef = doc(db, USERS_PATH, uid);
+            const userSnap = await getDoc(userDocRef);
+
+            if (!userSnap.exists()) {
+                console.warn("User record not found in Firestore. Signing out.");
+                if (!SIMULATION_MODE) handleSignOut(); 
+                return;
+            }
+
+            const userData = userSnap.data();
+            currentCompanyId = userData.companyId;
+            
+            if (userData.role !== 'Admin') {
+                switchView('dashboard'); 
+                document.getElementById('dashboard-view').innerHTML = `<div class="text-center p-10"><h1 class="text-2xl font-bold text-red-600">Access Denied</h1><p>Only Admin users can access this dashboard.</p><button onclick="handleSignOut()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg">Sign Out</button></div>`;
+                return;
+            }
+            
+            const companyDocRef = doc(db, COMPANIES_PATH, currentCompanyId);
+            const companySnap = await getDoc(companyDocRef);
+            if (companySnap.exists()) {
+                companyBaseCurrency = companySnap.data().baseCurrency;
+            }
+
+            document.getElementById('company-info').textContent = `User: ${userData.name} (Admin) | Company ID: ${currentCompanyId} | Base Currency: ${companyBaseCurrency}`;
+            
+            switchView('dashboard');
+            listenForCompanyUsers();
+            switchAdminTab('users'); 
+
+        } catch (error) {
+            console.error("Error checking user role and loading dashboard:", error);
+            handleSignOut();
+        }
+    }
+    
+    function listenForCompanyUsers() {
+        if (!db || !currentCompanyId) return;
+
+        const usersQuery = query(collection(db, USERS_PATH), where("companyId", "==", currentCompanyId));
+        
+        onSnapshot(usersQuery, (snapshot) => {
+            companyUsers = [];
+            snapshot.forEach((doc) => {
+                const user = doc.data();
+                companyUsers.push(user);
+            });
+            renderUsersTable();
+            populateApprovalRuleDropdowns();
+        }, (error) => {
+            console.error("Error listening to company users:", error);
+        });
+    }
+
+    function renderUsersTable() {
+        const tbody = document.getElementById('users-table-body');
+        tbody.innerHTML = '';
+        
+        const nonAdminUsers = companyUsers.filter(u => u.role !== 'Admin');
+        
+        if (nonAdminUsers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No employees or managers have been added yet.</td></tr>`;
+            return;
+        }
+
+        const managers = companyUsers.filter(u => u.role === 'Manager');
+
+        nonAdminUsers.forEach(user => {
+            const isManager = user.role === 'Manager';
+            
+            const roleSelect = `
+                <select onchange="updateUserRole('${user.uid}', this.value)" 
+                    class="p-2 border rounded-lg bg-white w-full text-sm">
+                    <option value="Employee" ${user.role === 'Employee' ? 'selected' : ''}>Employee</option>
+                    <option value="Manager" ${user.role === 'Manager' ? 'selected' : ''}>Manager</option>
+                </select>
+            `;
+
+            let managerSelect = '';
+            if (!isManager) {
+                managerSelect = `
+                    <select onchange="updateManagerRelationship('${user.uid}', this.value)" 
+                        class="p-2 border rounded-lg bg-white w-full text-sm">
+                        <option value="" ${!user.managerId ? 'selected' : ''}>-- No Manager --</option>
+                        ${managers.map(manager => `
+                            <option value="${manager.uid}" ${user.managerId === manager.uid ? 'selected' : ''}>
+                                ${manager.name}
+                            </option>
+                        `).join('')}
+                    </select>
+                `;
+            } else {
+                managerSelect = `<span class="text-gray-500 italic">N/A</span>`;
+            }
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-50 transition-colors duration-100';
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-medium text-gray-900">${user.name}</div>
+                    <div class="text-sm text-gray-500">${user.email}</div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">${roleSelect}</td>
+                <td class="px-6 py-4 whitespace-nowrap">${managerSelect}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <button onclick="simulatePasswordSend('${user.email}')" 
+                        class="bg-yellow-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-600 transition-colors duration-200">
+                        Send Password
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    window.updateUserRole = async function(uid, newRole) {
+        if (!db) return;
+        const userRef = doc(db, USERS_PATH, uid);
+        
+        try {
+            await updateDoc(userRef, { 
+                role: newRole,
+                managerId: newRole === 'Manager' ? null : companyUsers.find(u => u.uid === uid)?.managerId || null
+            });
+            console.log(`User ${uid} role updated to ${newRole}`);
+        } catch (error) {
+            console.error("Error updating user role:", error);
+        }
+    }
+    
+    window.updateManagerRelationship = async function(uid, managerUid) {
+        if (!db) return;
+        const userRef = doc(db, USERS_PATH, uid);
+        
+        try {
+            await updateDoc(userRef, { managerId: managerUid || null });
+            console.log(`User ${uid} manager relationship updated to ${managerUid || 'none'}`);
+        } catch (error) {
+            console.error("Error updating manager relationship:", error);
+        }
+    }
+    
+    async function handleCreateUser(event) {
+        event.preventDefault();
+        const name = document.getElementById('new-user-name').value;
+        const email = document.getElementById('new-user-email').value;
+        const role = document.getElementById('new-user-role').value;
+        const msgElement = document.getElementById('user-creation-message');
+        const btn = document.getElementById('create-user-btn');
+
+        msgElement.classList.add('hidden');
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+
+        try {
+            const q = query(collection(db, USERS_PATH), where("email", "==", email), where("companyId", "==", currentCompanyId));
+            const existingUsers = await getDocs(q);
+
+            if (!existingUsers.empty) {
+                msgElement.textContent = `User with email ${email} already exists in your company.`;
+                msgElement.classList.remove('hidden');
+                msgElement.classList.add('text-red-600');
+                return;
+            }
+
+            const tempUid = 'temp_' + crypto.randomUUID(); 
+            
+            await setDoc(doc(db, USERS_PATH, tempUid), {
+                uid: tempUid,
+                name: name,
+                email: email,
+                role: role,
+                companyId: currentCompanyId,
+                managerId: null,
+                isPlaceholder: true, 
+                createdAt: new Date().toISOString()
+            });
+
+            msgElement.textContent = `User ${name} (${role}) added successfully. An invitation should be sent (simulated).`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.remove('text-red-600');
+            msgElement.classList.add('text-green-600');
+
+            // --- FIX: Clear form after successful creation ---
+            document.getElementById('new-user-name').value = '';
+            document.getElementById('new-user-email').value = '';
+
+        } catch (error) {
+            console.error("Error creating user:", error);
+            msgElement.textContent = `Failed to create user: ${error.message}`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-600');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Add User';
+            setTimeout(() => msgElement.classList.add('hidden'), 5000);
+        }
+    }
+
+    window.simulatePasswordSend = function(email) {
+        const msg = `
+            [SIMULATION]: Password send requested for ${email}. 
+            In the live application, this would email a temporary password.
+        `;
+        alert(msg);
+    }
+    
+    window.showPasswordResetModal = function() {
+        document.getElementById('reset-modal').classList.remove('hidden');
+        document.getElementById('reset-modal').classList.add('flex');
+        document.getElementById('reset-message').textContent = '';
+    }
+
+    window.hidePasswordResetModal = function() {
+        document.getElementById('reset-modal').classList.add('hidden');
+        document.getElementById('reset-modal').classList.remove('flex');
+    }
+
+    window.handlePasswordReset = async function() {
+        const email = document.getElementById('reset-email').value;
+        const msgElement = document.getElementById('reset-message');
+
+        if (SIMULATION_MODE) {
+            msgElement.textContent = "[SIMULATION] Password reset is not available. Use the 'Sign In (Simulated)' tab.";
+            msgElement.className = 'mt-3 text-sm text-red-600';
+            return;
+        }
+
+        msgElement.textContent = 'Sending reset link...';
+        msgElement.className = 'mt-3 text-sm text-gray-500';
+
+        if (!email) {
+            msgElement.textContent = 'Please enter an email address.';
+            msgElement.className = 'mt-3 text-sm text-red-600';
+            return;
+        }
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            msgElement.textContent = `Password reset link sent to ${email}. Check your inbox.`;
+            msgElement.className = 'mt-3 text-sm text-green-600';
+            document.getElementById('reset-email').value = '';
+        } catch (error) {
+            console.error("Password reset failed:", error);
+            msgElement.textContent = `Error sending reset link. Please check the email address.`;
+            msgElement.className = 'mt-3 text-sm text-red-600';
+        }
+    }
+    
+    // --- APPROVAL RULES LOGIC ---
+    
+    function populateApprovalRuleDropdowns() {
+        const userDropdown = document.getElementById('rule-user');
+        const managerDropdown = document.getElementById('rule-manager');
+        
+        const nonAdminUsers = companyUsers.filter(u => u.role !== 'Admin');
+        const managers = companyUsers.filter(u => u.role === 'Manager');
+
+        userDropdown.innerHTML = `<option value="" disabled selected>Select user for this rule</option>`;
+        userDropdown.innerHTML += `<option value="All">All Users (Global Rule)</option>`;
+        nonAdminUsers.forEach(user => {
+            userDropdown.innerHTML += `<option value="${user.uid}">${user.name} (${user.role})</option>`;
+        });
+
+        managerDropdown.innerHTML = `<option value="" selected>Initially set on user record</option>`;
+        managers.forEach(manager => {
+            managerDropdown.innerHTML += `<option value="${manager.uid}">${manager.name}</option>`;
+        });
+        
+        renderApproversList();
+    }
+
+    window.renderApproversList = function() {
+        const container = document.getElementById('approvers-list');
+        const isManagerApprover = document.getElementById('is-manager-approver').checked;
+        
+        const nonAdminUsers = companyUsers.filter(u => u.role !== 'Admin');
+
+        container.innerHTML = '';
+        
+        if (isManagerApprover) {
+            container.innerHTML += `
+                <div class="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200 text-sm">
+                    <span class="w-1/3 font-semibold text-yellow-800">1. Direct Manager (Auto)</span>
+                    <div class="w-1/5 text-center text-yellow-800">
+                        <input type="checkbox" checked disabled class="h-4 w-4 text-yellow-600 border-gray-300 rounded">
+                    </div>
+                    <span class="w-1/3 text-center text-yellow-800 text-xs italic">Default approval goes to the user's manager.</span>
+                    <span class="w-1/12"></span>
+                </div>
+            `;
+        }
+
+        currentApprovers.forEach((approver, index) => {
+            const approverIndex = (isManagerApprover ? 1 : 0) + index + 1;
+
+            const approverOptions = nonAdminUsers.map(user => `
+                <option value="${user.uid}" ${approver.uid === user.uid ? 'selected' : ''}>${user.name} (${user.role})</option>
+            `).join('');
+
+            container.innerHTML += `
+                <div class="flex items-center space-x-2 p-1 border-b border-gray-100 last:border-b-0">
+                    <span class="text-xs w-4">${approverIndex}.</span>
+                    <select id="approver-user-${index}" data-index="${index}" class="w-1/3 p-2 border rounded-lg bg-white text-sm" onchange="updateApprover(this)">
+                        <option value="Role_Manager" ${approver.type === 'Role' && approver.uid === 'Manager' ? 'selected' : ''}>Role: Any Manager</option>
+                        ${approverOptions}
+                    </select>
+                    <div class="w-1/5 text-center flex items-center justify-center">
+                        <input type="checkbox" id="approver-required-${index}" data-index="${index}" ${approver.required ? 'checked' : ''} class="h-4 w-4 text-blue-600 border-gray-300 rounded" onchange="updateApprover(this)">
+                         <span class="text-xs text-gray-500 ml-2">(Required)</span>
+                    </div>
+                    <div class="w-1/3 text-center text-xs text-gray-500 italic">
+                        If this field is ticked then employee approval of this approver is required in any approval combination scenarios.
+                    </div>
+                    <button type="button" onclick="removeApprover(${index})" class="w-1/12 text-red-500 hover:text-red-700 p-1 rounded-full">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            `;
+        });
+    }
+    
+    window.addApprover = function() {
+        const firstUser = companyUsers.find(u => u.role !== 'Admin');
+
+        currentApprovers.push({
+            uid: firstUser ? firstUser.uid : 'Manager', 
+            name: firstUser ? firstUser.name : 'Role: Any Manager',
+            type: firstUser ? 'User' : 'Role',
+            required: true
+        });
+        renderApproversList();
+    }
+
+    window.removeApprover = function(index) {
+        currentApprovers.splice(index, 1);
+        renderApproversList();
+    }
+
+    window.updateApprover = function(element) {
+        const index = parseInt(element.getAttribute('data-index'));
+        const approver = currentApprovers[index];
+
+        if (element.type === 'select-one') {
+            const value = element.value;
+            if (value.startsWith('Role_')) {
+                approver.type = 'Role';
+                approver.uid = value.split('_')[1];
+                approver.name = 'Role: ' + approver.uid;
+            } else {
+                approver.type = 'User';
+                approver.uid = value;
+                approver.name = companyUsers.find(u => u.uid === value)?.name || 'Unknown User';
+            }
+        } else if (element.type === 'checkbox') {
+            if (element.id.startsWith('approver-required')) {
+                approver.required = element.checked;
+            } 
+        }
+    }
+    
+    async function handleSaveApprovalRule(event) {
+        event.preventDefault();
+
+        const ruleUser = document.getElementById('rule-user').value;
+        const ruleManager = document.getElementById('rule-manager').value;
+        const description = document.getElementById('rule-description').value;
+        const isManagerApprover = document.getElementById('is-manager-approver').checked;
+        const sequenceRequired = document.getElementById('approvers-sequence-required').checked;
+        const minApprovalPercentage = parseInt(document.getElementById('min-approval-percentage').value);
+        const msgElement = document.getElementById('rule-save-message');
+        const btn = document.getElementById('save-rule-btn');
+        
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        msgElement.classList.add('hidden');
+
+        let appliesTo = { 
+            type: ruleUser === 'All' ? 'All' : 'User', 
+            uid: ruleUser === 'All' ? null : ruleUser,
+            managerUid: ruleManager || null 
+        };
+
+        let finalApprovers = [];
+        if (isManagerApprover) {
+            finalApprovers.push({
+                type: 'Role',
+                uid: 'DirectManager', 
+                name: 'Direct Manager',
+                required: true, 
+                isManager: true
+            });
+        }
+        
+        finalApprovers = finalApprovers.concat(currentApprovers.map(a => ({
+            ...a,
+            name: a.type === 'Role' ? `Role: ${a.uid}` : companyUsers.find(u => u.uid === a.uid)?.name || 'Unknown User',
+            isManager: a.uid === 'Role_Manager'
+        })));
+        
+        if (finalApprovers.length === 0) {
+            msgElement.textContent = 'Please add at least one approver.';
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-600');
+            btn.disabled = false;
+            btn.textContent = 'Save Approval Rule';
+            return;
+        }
+
+        const ruleData = {
+            description,
+            appliesTo,
+            isManagerApprover,
+            approvers: finalApprovers,
+            sequenceRequired,
+            minApprovalPercentage,
+            companyId: currentCompanyId,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            await addDoc(collection(db, RULES_PATH), ruleData);
+            msgElement.textContent = 'Approval rule saved successfully!';
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-green-600');
+            
+            document.getElementById('approval-rule-form').reset();
+            currentApprovers = [];
+            renderApproversList();
+            populateApprovalRuleDropdowns();
+
+        } catch (error) {
+            console.error("Error saving rule:", error);
+            msgElement.textContent = `Failed to save rule: ${error.message}`;
+            msgElement.classList.remove('hidden');
+            msgElement.classList.add('text-red-600');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Save Approval Rule';
+            setTimeout(() => msgElement.classList.add('hidden'), 5000);
+        }
+    }
+    
+    function listenForApprovalRules() {
+        if (!db || !currentCompanyId) return;
+        const rulesQuery = query(collection(db, RULES_PATH), where("companyId", "==", currentCompanyId));
+        
+        onSnapshot(rulesQuery, (snapshot) => {
+            const tbody = document.getElementById('rules-table-body');
+            tbody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No approval rules defined yet.</td></tr>`;
+                return;
+            }
+
+            snapshot.forEach((doc) => {
+                const rule = doc.data();
+                const ruleId = doc.id;
+                
+                let appliesToText = '';
+                if (rule.appliesTo.type === 'All') {
+                    appliesToText = 'All Users';
+                } else if (rule.appliesTo.type === 'User') {
+                    const user = companyUsers.find(u => u.uid === rule.appliesTo.uid);
+                    const manager = companyUsers.find(u => u.uid === rule.appliesTo.managerUid);
+                    appliesToText = `User: ${user ? user.name : 'Unknown'}`;
+                    if (manager) {
+                        appliesToText += `<br><span class="text-xs text-gray-400">Mgr Override: ${manager.name}</span>`;
+                    }
+                }
+                
+                const approversList = rule.approvers.map((a, index) => {
+                    let name = a.name;
+                    if (a.type === 'Role' && a.uid === 'DirectManager') name = 'Direct Manager';
+                    
+                    const requiredStar = a.required ? ' <span class="text-red-500">*</span>' : '';
+                    const sequenceMarker = rule.sequenceRequired ? (index + 1) + '. ' : '';
+                    
+                    return `${sequenceMarker}${name}${requiredStar}`;
+                }).join('; ');
+                
+                const sequenceInfo = rule.sequenceRequired ? ' (Sequential)' : ' (Parallel)';
+                
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors duration-100';
+                row.innerHTML = `
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900">${rule.description}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">${appliesToText}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">
+                        ${approversList} ${sequenceInfo} <br>
+                        <span class="text-xs text-gray-400">Min Approval: ${rule.minApprovalPercentage}%</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">
+                        <button onclick="deleteApprovalRule('${ruleId}')" 
+                            class="text-red-500 hover:text-red-700 text-sm font-medium transition-colors duration-200">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }, (error) => {
+            console.error("Error listening to approval rules:", error);
+        });
+    }
+
+    window.deleteApprovalRule = async function(ruleId) {
+        if (!confirm('Are you sure you want to delete this rule?')) return;
+        try {
+            await deleteDoc(doc(db, RULES_PATH, ruleId));
+        } catch (error) {
+            console.error("Error deleting rule:", error);
+            alert('Failed to delete rule: ' + error.message);
+        }
+    }
+
+
+    // --- EXPOSE GLOBAL FUNCTIONS ---
+    // These functions must be attached to the window object to be called from HTML
+    window.switchAuthView = switchAuthView;
+    window.handleSignUp = handleSignUp;
+    window.handleSignIn = handleSignIn;
+    window.handleSignOut = handleSignOut;
+    window.handleCreateUser = handleCreateUser;
+    window.switchView = switchView;
+    window.handleSaveApprovalRule = handleSaveApprovalRule;
+    window.deleteApprovalRule = deleteApprovalRule;
+    window.renderApproversList = renderApproversList;
+    window.addApprover = addApprover;
+    window.removeApprover = removeApprover;
+    window.updateApprover = updateApprover;
+    window.updateUserRole = updateUserRole; // Already defined, re-exporting
+    window.updateManagerRelationship = updateManagerRelationship; // Already defined, re-exporting
+    window.showPasswordResetModal = showPasswordResetModal;
+    window.hidePasswordResetModal = hidePasswordResetModal;
+    window.handlePasswordReset = handlePasswordReset;
+
+
+    // Start the application on window load
+    window.onload = initializeAppServices;
+
+</script>
+
+</body>
+</html>
